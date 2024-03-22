@@ -19,11 +19,11 @@ class AverageMeter:
         Args:
             ema (bool, optional): apply exponential moving average.
         """
-        self.ema = ema
+        self.ema = ema  # apply exponential moving average
         self.reset()
 
     def reset(self):
-        self.val = 0
+        self.val = 0  # current value
         self.avg = 0
         self.sum = 0
         self.count = 0

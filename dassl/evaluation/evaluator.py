@@ -114,7 +114,7 @@ class Classification(EvaluatorBase):
 
             results["perclass_accuracy"] = mean_acc
 
-        if self.cfg.TEST.COMPUTE_CMAT:
+        if self.cfg.TEST.COMPUTE_CMAT:  # Compute confusion matrix
             cmat = confusion_matrix(
                 self._y_true, self._y_pred, normalize="true"
             )

@@ -9,8 +9,7 @@ class DomainNet(DatasetBase):
     """DomainNet.
 
     Statistics:
-        - 6 distinct domains: Clipart, Infograph, Painting, Quickdraw,
-        Real, Sketch.
+        - 6 distinct domains: Clipart, Infograph, Painting, Quickdraw, Real, Sketch.
         - Around 0.6M images.
         - 345 categories.
         - URL: http://ai.bu.edu/M3SDA/.
@@ -18,8 +17,7 @@ class DomainNet(DatasetBase):
     Special note: the t-shirt class (327) is missing in painting_train.txt.
 
     Reference:
-        - Peng et al. Moment Matching for Multi-Source Domain
-        Adaptation. ICCV 2019.
+        - Peng et al. Moment Matching for Multi-Source Domain Adaptation. ICCV 2019.
     """
 
     dataset_dir = "domainnet"
@@ -48,7 +46,7 @@ class DomainNet(DatasetBase):
 
         for domain, dname in enumerate(input_domains):
             filename = dname + "_" + split + ".txt"
-            split_file = osp.join(self.split_dir, filename)
+            split_file = osp.join(self.split_dir, filename)  # 按照txt中的列表进行读取
 
             with open(split_file, "r") as f:
                 lines = f.readlines()

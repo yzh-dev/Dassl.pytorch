@@ -117,56 +117,54 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--root", type=str, default="", help="path to dataset")
-    parser.add_argument(
-        "--output-dir", type=str, default="", help="output directory"
-    )
-    parser.add_argument(
-        "--resume",
-        type=str,
-        default="",
-        help="checkpoint directory (from which the training resumes)",
-    )
-    parser.add_argument(
-        "--seed",
-        type=int,
-        default=-1,
-        help="only positive value enables a fixed seed"
-    )
-    parser.add_argument(
-        "--source-domains",
-        type=str,
-        nargs="+",
-        help="source domains for DA/DG"
-    )
-    parser.add_argument(
-        "--target-domains",
-        type=str,
-        nargs="+",
-        help="target domains for DA/DG"
-    )
-    parser.add_argument(
-        "--transforms", type=str, nargs="+", help="data augmentation methods"
-    )
-    parser.add_argument(
-        "--config-file", type=str, default="", help="path to config file"
-    )
-    parser.add_argument(
-        "--dataset-config-file",
-        type=str,
-        default="",
-        help="path to config file for dataset setup",
-    )
-    parser.add_argument(
-        "--trainer", type=str, default="", help="name of trainer"
-    )
-    parser.add_argument(
-        "--backbone", type=str, default="", help="name of CNN backbone"
-    )
+    parser.add_argument("--root", type=str, default="D:\ML\Dataset", help="path to dataset")
+    parser.add_argument("--output-dir", type=str, default="../output/", help="output directory")
+    parser.add_argument("--resume", type=str, default="",
+                        help="checkpoint directory (from which the training resumes)", )
+    parser.add_argument("--seed", type=int, default=42, help="only positive value enables a fixed seed")
+
+    # DA  for office31 from amazon to webcam
+    # parser.add_argument("--trainer", type=str, default="SourceOnly", help="name of trainer")
+    # parser.add_argument("--source-domains", type=str, nargs="+", default=["amazon"], help="source domains for DA/DG")
+    # parser.add_argument("--target-domains", type=str, nargs="+", default=["webcam"], help="target domains for DA/DG")
+    # parser.add_argument("--config-file", type=str, default="../configs/trainers/da/source_only/office31.yaml",
+    #                     help="path to config file")
+    # parser.add_argument("--dataset-config-file", type=str, default="../configs/datasets/da/office31.yaml",
+    #                     help="path to config file for dataset setup", )
+
+    # DA  for domain_net from clipart to infograph
+    # parser.add_argument("--trainer", type=str, default="SourceOnly", help="name of trainer")
+    # parser.add_argument("--source-domains", type=str, nargs="+", default=["clipart"], help="source domains for DA/DG")
+    # parser.add_argument("--target-domains", type=str, nargs="+", default=["infograph"], help="target domains for DA/DG")
+    # parser.add_argument("--config-file", type=str, default="../configs/trainers/da/source_only/mini_domainnet.yaml",
+    #                     help="path to config file")
+    # parser.add_argument("--dataset-config-file", type=str, default="../configs/datasets/da/domainnet.yaml",
+    #                     help="path to config file for dataset setup", )
+
+    # DG for office-home
+    # parser.add_argument("--trainer", type=str, default="Vanilla", help="name of trainer")
+    # parser.add_argument("--source-domains", type=str, nargs="+", default=["art", "clipart"],
+    #                     help="source domains for DA/DG")
+    # parser.add_argument("--target-domains", type=str, nargs="+", default=["product"], help="target domains for DA/DG")
+    # parser.add_argument("--config-file", type=str, default="../configs/trainers/dg/vanilla/office_home_dg.yaml",
+    #                     help="path to config file")
+    # parser.add_argument("--dataset-config-file", type=str, default="../configs/datasets/dg/office_home_dg.yaml",
+    #                     help="path to config file for dataset setup", )
+
+    # DG for ddaig算法
+    parser.add_argument("--trainer", type=str, default="DDAIG", help="name of trainer")
+    parser.add_argument("--source-domains", type=str, nargs="+", default=["art", "clipart"],
+                        help="source domains for DA/DG")
+    parser.add_argument("--target-domains", type=str, nargs="+", default=["product"], help="target domains for DA/DG")
+    parser.add_argument("--config-file", type=str, default="../configs/trainers/dg/ddaig/office_home_dg.yaml",
+                        help="path to config file")
+    parser.add_argument("--dataset-config-file", type=str, default="../configs/datasets/dg/office_home_dg.yaml",
+                        help="path to config file for dataset setup", )
+
+    parser.add_argument("--backbone", type=str, default="", help="name of CNN backbone")
+    parser.add_argument("--transforms", type=str, nargs="+", help="data augmentation methods")
     parser.add_argument("--head", type=str, default="", help="name of head")
-    parser.add_argument(
-        "--eval-only", action="store_true", help="evaluation only"
-    )
+    parser.add_argument("--eval-only", action="store_true", help="evaluation only")
     parser.add_argument(
         "--model-dir",
         type=str,

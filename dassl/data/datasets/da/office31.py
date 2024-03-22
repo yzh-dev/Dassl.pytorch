@@ -32,8 +32,8 @@ class Office31(DatasetBase):
             cfg.DATASET.SOURCE_DOMAINS, cfg.DATASET.TARGET_DOMAINS
         )
 
-        train_x = self._read_data(cfg.DATASET.SOURCE_DOMAINS)
-        train_u = self._read_data(cfg.DATASET.TARGET_DOMAINS)
+        train_x = self._read_data(cfg.DATASET.SOURCE_DOMAINS)  # 源域
+        train_u = self._read_data(cfg.DATASET.TARGET_DOMAINS)  # 目标域
         test = self._read_data(cfg.DATASET.TARGET_DOMAINS)
 
         super().__init__(train_x=train_x, train_u=train_u, test=test)

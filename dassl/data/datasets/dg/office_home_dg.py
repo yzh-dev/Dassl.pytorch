@@ -20,7 +20,7 @@ class OfficeHomeDG(DatasetBase):
         Domain Adaptation. CVPR 2017.
     """
 
-    dataset_dir = "office_home_dg"
+    dataset_dir = "office_home_dg"  # 指定了数据所在子目录
     domains = ["art", "clipart", "product", "real_world"]
     data_url = "https://drive.google.com/uc?id=1gkbf_KaxoBws-GWT3XIPZ7BnkqbAxIFa"
 
@@ -45,5 +45,5 @@ class OfficeHomeDG(DatasetBase):
         test = DigitsDG.read_data(
             self.dataset_dir, cfg.DATASET.TARGET_DOMAINS, "all"
         )
-
+        # 调用父类DatasetBase构造函数，只需要带标签的train_x，不需要无标签train_u
         super().__init__(train_x=train, val=val, test=test)

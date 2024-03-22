@@ -73,7 +73,7 @@ class DigitsDG(DatasetBase):
             return items_
 
         items = []
-
+        # 每个域迭代读取，共同返回到items列表中，没有把每个域分别存储
         for domain, dname in enumerate(input_domains):
             if split == "all":
                 train_dir = osp.join(dataset_dir, dname, "train")
@@ -85,7 +85,8 @@ class DigitsDG(DatasetBase):
                 impath_label_list = _load_data_from_directory(split_dir)
 
             for impath, label in impath_label_list:
-                class_name = impath.split("/")[-2].lower()
+                # class_name = impath.split("/")[-2].lower()
+                class_name = impath.split("\\")[-2].lower()
                 item = Datum(
                     impath=impath,
                     label=label,

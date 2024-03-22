@@ -11,7 +11,7 @@ from torchvision.transforms.functional import InterpolationMode
 
 from .autoaugment import SVHNPolicy, CIFAR10Policy, ImageNetPolicy
 from .randaugment import RandAugment, RandAugment2, RandAugmentFixMatch
-
+# 可用的数据增强操作
 AVAI_CHOICES = [
     "random_flip",
     "random_resized_crop",

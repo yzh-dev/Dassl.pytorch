@@ -305,7 +305,7 @@ class TrainerBase:
 
 class SimpleTrainer(TrainerBase):
     """A simple trainer class implementing generic functions."""
-
+    # 构造函数
     def __init__(self, cfg):
         super().__init__()
         self.check_cfg(cfg)
@@ -321,8 +321,8 @@ class SimpleTrainer(TrainerBase):
         self.output_dir = cfg.OUTPUT_DIR
 
         self.cfg = cfg
-        self.build_data_loader()
-        self.build_model()
+        self.build_data_loader()#构建数据加载器
+        self.build_model()#构建模型
         self.evaluator = build_evaluator(cfg, lab2cname=self.lab2cname)
         self.best_result = -np.inf
 
@@ -347,7 +347,7 @@ class SimpleTrainer(TrainerBase):
         dm = DataManager(self.cfg)
 
         self.train_loader_x = dm.train_loader_x
-        self.train_loader_u = dm.train_loader_u  # optional, can be None
+        self.train_loader_u = dm.train_loader_u  # 无标签训练集, can be None
         self.val_loader = dm.val_loader  # optional, can be None
         self.test_loader = dm.test_loader
 
@@ -423,10 +423,10 @@ class SimpleTrainer(TrainerBase):
         last_epoch = (self.epoch + 1) == self.max_epoch
         do_test = not self.cfg.TEST.NO_TEST
         meet_checkpoint_freq = (
-            (self.epoch + 1) % self.cfg.TRAIN.CHECKPOINT_FREQ == 0
+            (self.epoch + 1) % self.cfg.TRAIN.CHECKPOINT_FREQ == 0  # How often (epoch) to save model during training
             if self.cfg.TRAIN.CHECKPOINT_FREQ > 0 else False
         )
-
+        # 保存最优模型参数
         if do_test and self.cfg.TEST.FINAL_MODEL == "best_val":
             curr_result = self.test(split="val")
             is_best = curr_result > self.best_result
@@ -438,7 +438,7 @@ class SimpleTrainer(TrainerBase):
                     val_result=curr_result,
                     model_name="model-best.pth.tar"
                 )
-
+        # 按照固定频率保存或者保存最终模型参数
         if meet_checkpoint_freq or last_epoch:
             self.save_model(self.epoch, self.output_dir)
 
@@ -597,7 +597,7 @@ class TrainerX(SimpleTrainer):
             batch_time.update(time.time() - end)
             losses.update(loss_summary)
 
-            meet_freq = (self.batch_idx + 1) % self.cfg.TRAIN.PRINT_FREQ == 0
+            meet_freq = (self.batch_idx + 1) % self.cfg.TRAIN.PRINT_FREQ == 0  # PRINT_FREQ打印一次运行结果
             only_few_batches = self.num_batches < self.cfg.TRAIN.PRINT_FREQ
             if meet_freq or only_few_batches:
                 nb_remain = 0
@@ -605,7 +605,7 @@ class TrainerX(SimpleTrainer):
                 nb_remain += (
                     self.max_epoch - self.epoch - 1
                 ) * self.num_batches
-                eta_seconds = batch_time.avg * nb_remain
+                eta_seconds = batch_time.avg * nb_remain  # 预估剩余计算的事件
                 eta = str(datetime.timedelta(seconds=int(eta_seconds)))
 
                 info = []
@@ -619,7 +619,7 @@ class TrainerX(SimpleTrainer):
                 print(" ".join(info))
 
             n_iter = self.epoch * self.num_batches + self.batch_idx
-            for name, meter in losses.meters.items():
+            for name, meter in losses.meters.items():  # 在这里利用tensorboard输出相关信息
                 self.write_scalar("train/" + name, meter.avg, n_iter)
             self.write_scalar("train/lr", self.get_current_lr(), n_iter)
 

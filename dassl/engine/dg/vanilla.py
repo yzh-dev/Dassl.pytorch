@@ -12,8 +12,8 @@ class Vanilla(TrainerX):
     """
 
     def forward_backward(self, batch):
-        input, target = self.parse_batch_train(batch)
-        output = self.model(input)
+        input, target = self.parse_batch_train(batch)  # 获取batch中的img和label
+        output = self.model(input)  # batch*num_class
         loss = F.cross_entropy(output, target)
         self.model_backward_and_update(loss)
 
@@ -22,7 +22,7 @@ class Vanilla(TrainerX):
             "acc": compute_accuracy(output, target)[0].item(),
         }
 
-        if (self.batch_idx + 1) == self.num_batches:
+        if (self.batch_idx + 1) == self.num_batches:  # 相当于每个epoch更新一下lr
             self.update_lr()
 
         return loss_summary

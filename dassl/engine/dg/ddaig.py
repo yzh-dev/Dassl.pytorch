@@ -11,7 +11,7 @@ from dassl.engine.trainer import SimpleNet
 @TRAINER_REGISTRY.register()
 class DDAIG(TrainerX):
     """Deep Domain-Adversarial Image Generation.
-
+    # _20 AAAI Deep Domain-Adversarial Image Generation for Domain Generalisation.pdf
     https://arxiv.org/abs/2003.06054.
     """
 
@@ -34,7 +34,7 @@ class DDAIG(TrainerX):
         self.optim_F = build_optimizer(self.F, cfg.OPTIM)
         self.sched_F = build_lr_scheduler(self.optim_F, cfg.OPTIM)
         self.register_model("F", self.F, self.optim_F, self.sched_F)
-
+        # 域分类器
         print("Building D")
         self.D = SimpleNet(cfg, cfg.MODEL, self.num_source_domains)
         self.D.to(self.device)
@@ -55,10 +55,10 @@ class DDAIG(TrainerX):
         input, label, domain = self.parse_batch_train(batch)
 
         #############
-        # Update G
+        # Update G，特征变换器G（反复使用3*3卷积层，保持形状不变），负责对输入input进行特征增强
         #############
         input_p = self.G(input, lmda=self.lmda)
-        if self.clamp:
+        if self.clamp:  # 将输入张量的每个元素的范围限制到指定的区间
             input_p = torch.clamp(
                 input_p, min=self.clamp_min, max=self.clamp_max
             )
@@ -67,27 +67,25 @@ class DDAIG(TrainerX):
         loss_g += F.cross_entropy(self.F(input_p), label)
         # Maximize domain loss
         loss_g -= F.cross_entropy(self.D(input_p), domain)
-        self.model_backward_and_update(loss_g, "G")
+        self.model_backward_and_update(loss_g, "G")  # 训练特征增强网络G
 
         # Perturb data with new G
         with torch.no_grad():
-            input_p = self.G(input, lmda=self.lmda)
+            input_p = self.G(input, lmda=self.lmda)  # 计算特征增强后的input_p
             if self.clamp:
-                input_p = torch.clamp(
-                    input_p, min=self.clamp_min, max=self.clamp_max
-                )
+                input_p = torch.clamp(input_p, min=self.clamp_min, max=self.clamp_max)
 
         #############
-        # Update F
+        # Update F，类别分类器
         #############
         loss_f = F.cross_entropy(self.F(input), label)
         if (self.epoch + 1) > self.warmup:
             loss_fp = F.cross_entropy(self.F(input_p), label)
-            loss_f = (1.0 - self.alpha) * loss_f + self.alpha * loss_fp
+            loss_f = (1.0 - self.alpha) * loss_f + self.alpha * loss_fp  # 综合原始图片input和特征增强input_p的损失，作为分类损失
         self.model_backward_and_update(loss_f, "F")
 
         #############
-        # Update D
+        # Update D，域分类器
         #############
         loss_d = F.cross_entropy(self.D(input), domain)
         self.model_backward_and_update(loss_d, "D")

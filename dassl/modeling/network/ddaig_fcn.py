@@ -182,7 +182,7 @@ class FCN(nn.Module):
 
         p = 0
         if padding_type == "reflect":
-            backbone += [nn.ReflectionPad2d(1)]
+            backbone += [nn.ReflectionPad2d(1)]  # 使用反射填充
         elif padding_type == "replicate":
             backbone += [nn.ReplicationPad2d(1)]
         elif padding_type == "zero":
@@ -243,9 +243,15 @@ class FCN(nn.Module):
 
     def stn(self, x):
         """Spatial transformer network."""
-        theta = self.locnet(x)
-        grid = F.affine_grid(theta, x.size())
-        return F.grid_sample(x, grid), theta
+        # 空间网络变换层，具有平移不变性、旋转不变性及缩放不变性等强大的性能
+        # https://zhuanlan.zhihu.com/p/37110107
+        # 输入：特征图
+        # 输出：变换矩阵 ，用于下一步计算（ 输出规模视具体的变换。以仿射变换为例， 是一个[2,3]大小的6维参数）
+        # 注：theta被初始化为恒等变换矩阵，通过损失函数不断更正theta的参数，最终得到期望的仿射变换矩阵。
+        theta = self.locnet(x)  # Localisation Network-局部网络
+        # 此步骤的目地是为了得到输出特征图的坐标点对应的输入特征图的坐标点的位置
+        grid = F.affine_grid(theta, x.size())  # Parameterised Sampling Grid-参数化网格采样
+        return F.grid_sample(x, grid), theta  # Differentiable Image Sampling-差分图像采样
 
     def forward(self, x, lmda=1.0, return_p=False, return_stn_output=False):
         """

@@ -143,8 +143,8 @@ class DataManager:
 
         # Dataset and data-loaders
         self.dataset = dataset
-        self.train_loader_x = train_loader_x
-        self.train_loader_u = train_loader_u
+        self.train_loader_x = train_loader_x  # 有标签训练集
+        self.train_loader_u = train_loader_u  # 无标签训练集
         self.val_loader = val_loader
         self.test_loader = test_loader
 
