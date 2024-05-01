@@ -87,9 +87,9 @@ def build_lr_scheduler(optimizer, optim_cfg):
         optimizer (Optimizer): an Optimizer.
         optim_cfg (CfgNode): optimization config.
     """
-    lr_scheduler = optim_cfg.LR_SCHEDULER
-    stepsize = optim_cfg.STEPSIZE
-    gamma = optim_cfg.GAMMA
+    lr_scheduler = optim_cfg.LR_SCHEDULER  # 使用的学习率调度器
+    stepsize = optim_cfg.STEPSIZE  # 第20个epoch调整一次lr
+    gamma = optim_cfg.GAMMA  # lr = lr*gamma)，默认gamma等于0.1
     max_epoch = optim_cfg.MAX_EPOCH
 
     if lr_scheduler not in AVAI_SCHEDS:
@@ -121,9 +121,7 @@ def build_lr_scheduler(optimizer, optim_cfg):
                 f"be a list, but got {type(stepsize)}"
             )
 
-        scheduler = torch.optim.lr_scheduler.MultiStepLR(
-            optimizer, milestones=stepsize, gamma=gamma
-        )
+        scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=stepsize, gamma=gamma)
 
     elif lr_scheduler == "cosine":
         scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(

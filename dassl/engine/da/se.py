@@ -8,8 +8,7 @@ from dassl.modeling.ops.utils import sigmoid_rampup, ema_model_update
 
 @TRAINER_REGISTRY.register()
 class SE(TrainerXU):
-    """Self-ensembling for visual domain adaptation.
-
+    """_18 ICLR Self-ensembling for visual domain adaptation.pdf
     https://arxiv.org/abs/1706.05208.
     """
 
@@ -25,16 +24,17 @@ class SE(TrainerXU):
             param.requires_grad_(False)
 
     def check_cfg(self, cfg):
-        assert cfg.DATALOADER.K_TRANSFORMS == 2
+        assert cfg.DATALOADER.K_TRANSFORMS == 2  # 两种变换方式
 
-    def forward_backward(self, batch_x, batch_u):
+    def forward_backward(self, batch_x, batch_u):  # 同时接收source 和target domain的样本进行训练
         global_step = self.batch_idx + self.epoch * self.num_batches
         parsed = self.parse_batch_train(batch_x, batch_u)
         input_x, label_x, input_u1, input_u2 = parsed
-
+        # supervised loss
         logit_x = self.model(input_x)
         loss_x = F.cross_entropy(logit_x, label_x)
 
+        # stu与teacher net的unlabeled pred loss
         prob_u = F.softmax(self.model(input_u1), 1)
         t_prob_u = F.softmax(self.teacher(input_u2), 1)
         loss_u = ((prob_u - t_prob_u)**2).sum(1)
@@ -51,7 +51,7 @@ class SE(TrainerXU):
         self.model_backward_and_update(loss)
 
         ema_alpha = min(1 - 1 / (global_step+1), self.ema_alpha)
-        ema_model_update(self.model, self.teacher, ema_alpha)
+        ema_model_update(self.model, self.teacher, ema_alpha)  # 指数平滑teacher net的参数
 
         loss_summary = {
             "loss_x": loss_x.item(),
@@ -72,7 +72,7 @@ class SE(TrainerXU):
 
         input_x = input_x.to(self.device)
         label_x = label_x.to(self.device)
-        input_u1 = input_u1.to(self.device)
-        input_u2 = input_u2.to(self.device)
+        input_u1 = input_u1.to(self.device)  # weak aug1
+        input_u2 = input_u2.to(self.device)  # weak aug2
 
         return input_x, label_x, input_u1, input_u2

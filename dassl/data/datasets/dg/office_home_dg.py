@@ -36,14 +36,8 @@ class OfficeHomeDG(DatasetBase):
             cfg.DATASET.SOURCE_DOMAINS, cfg.DATASET.TARGET_DOMAINS
         )
 
-        train = DigitsDG.read_data(
-            self.dataset_dir, cfg.DATASET.SOURCE_DOMAINS, "train"
-        )
-        val = DigitsDG.read_data(
-            self.dataset_dir, cfg.DATASET.SOURCE_DOMAINS, "val"
-        )
-        test = DigitsDG.read_data(
-            self.dataset_dir, cfg.DATASET.TARGET_DOMAINS, "all"
-        )
+        train = DigitsDG.read_data(self.dataset_dir, cfg.DATASET.SOURCE_DOMAINS, "train")
+        val = DigitsDG.read_data(self.dataset_dir, cfg.DATASET.SOURCE_DOMAINS, "val")
+        test = DigitsDG.read_data(self.dataset_dir, cfg.DATASET.TARGET_DOMAINS, "all")
         # 调用父类DatasetBase构造函数，只需要带标签的train_x，不需要无标签train_u
         super().__init__(train_x=train, val=val, test=test)

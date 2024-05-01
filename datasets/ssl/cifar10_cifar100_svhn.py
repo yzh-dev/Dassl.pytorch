@@ -1,3 +1,4 @@
+import os.path
 import sys
 import os.path as osp
 from torchvision.datasets import SVHN, CIFAR10, CIFAR100
@@ -45,6 +46,10 @@ def download_and_prepare(name, root):
 
 
 if __name__ == "__main__":
-    download_and_prepare("cifar10", sys.argv[1])
-    download_and_prepare("cifar100", sys.argv[1])
-    download_and_prepare("svhn", sys.argv[1])
+    # download_and_prepare("cifar10", sys.argv[1])
+    # download_and_prepare("cifar100", sys.argv[1])
+    # download_and_prepare("svhn", sys.argv[1])
+
+    download_and_prepare("cifar10", os.path.curdir)
+    download_and_prepare("cifar100", os.path.curdir)
+    download_and_prepare("svhn", os.path.curdir)

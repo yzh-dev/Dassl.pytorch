@@ -5,7 +5,10 @@ INPUT:
 DATALOADER:
   TRAIN_X:
 #    BATCH_SIZE: 16
-    BATCH_SIZE: 8
+    BATCH_SIZE: 12
+#    SAMPLER: SeqDomainSampler
+#    SAMPLER: RandomDomainSampler
+    SAMPLER: RandomClassSampler
   TEST:
     BATCH_SIZE: 16
 
@@ -17,6 +20,7 @@ OPTIM:
 
 TRAINER:
   DDAIG:
-    G_ARCH: "fcn_3x64_gctx"
+#    G_ARCH: "fcn_3x64_gctx"
+    G_ARCH: "fcn_3x64_gctx_stn"
     WARMUP: 3
     LMDA: 0.3

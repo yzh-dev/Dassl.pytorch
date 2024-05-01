@@ -15,9 +15,9 @@ class Experts(nn.Module):
 
     def __init__(self, n_source, fdim, num_classes):
         super().__init__()
-        self.linears = nn.ModuleList(
-            [nn.Linear(fdim, num_classes) for _ in range(n_source)]
-        )
+
+        # 专家网络：对每种域都学习一个线性分类层，预测其分类
+        self.linears = nn.ModuleList( [nn.Linear(fdim, num_classes) for _ in range(n_source)])
         self.softmax = nn.Softmax(dim=1)
 
     def forward(self, i, x):
@@ -29,9 +29,7 @@ class Experts(nn.Module):
 @TRAINER_REGISTRY.register()
 class DAELDG(TrainerX):
     """Domain Adaptive Ensemble Learning.
-
     DG version: only use labeled source data.
-
     https://arxiv.org/abs/2003.07325.
     """
 
@@ -67,7 +65,7 @@ class DAELDG(TrainerX):
 
     def build_model(self):
         cfg = self.cfg
-
+        # 抽取特征网络
         print("Building F")
         self.F = SimpleNet(cfg, cfg.MODEL, 0)
         self.F.to(self.device)
@@ -76,7 +74,7 @@ class DAELDG(TrainerX):
         self.sched_F = build_lr_scheduler(self.optim_F, cfg.OPTIM)
         self.register_model("F", self.F, self.optim_F, self.sched_F)
         fdim = self.F.fdim
-
+        #
         print("Building E")
         self.E = Experts(self.num_source_domains, fdim, self.num_classes)
         self.E.to(self.device)
@@ -88,9 +86,9 @@ class DAELDG(TrainerX):
     def forward_backward(self, batch):
         parsed_data = self.parse_batch_train(batch)
         input, input2, label, domain = parsed_data
-
-        input = torch.split(input, self.split_batch, 0)
-        input2 = torch.split(input2, self.split_batch, 0)
+        # 按照域划分数据
+        input = torch.split(input, self.split_batch, 0)  # 弱增强样本
+        input2 = torch.split(input2, self.split_batch, 0)  # 强增强
         label = torch.split(label, self.split_batch, 0)
         domain = torch.split(domain, self.split_batch, 0)
         domain = [d[0].item() for d in domain]
@@ -99,28 +97,28 @@ class DAELDG(TrainerX):
         loss_cr = 0
         acc = 0
 
-        feat = [self.F(x) for x in input]
-        feat2 = [self.F(x) for x in input2]
-
+        feat = [self.F(x) for x in input]  # 弱增强特征
+        feat2 = [self.F(x) for x in input2]  # 强增强特征
+        # 对每个域的样本
         for feat_i, feat2_i, label_i, i in zip(feat, feat2, label, domain):
-            cr_s = [j for j in domain if j != i]
+            cr_s = [j for j in domain if j != i]  # 其他域
 
-            # Learning expert
+            # Learning expert，对弱增强样本，训练学习第i个域的专家网络expert
             pred_i = self.E(i, feat_i)
-            loss_x += (-label_i * torch.log(pred_i + 1e-5)).sum(1).mean()
-            expert_label_i = pred_i.detach()
+            loss_x += (-label_i * torch.log(pred_i + 1e-5)).sum(1).mean()  # 有标签损失
+            expert_label_i = pred_i.detach()  # 第i个域的专家网络expert的预测
             acc += compute_accuracy(pred_i.detach(),
                                     label_i.max(1)[1])[0].item()
 
-            # Consistency regularization
+            # Consistency regularization，一致性正则化，目的是使第i个域和其他所有域的平均预测结果保持一致
             cr_pred = []
             for j in cr_s:
-                pred_j = self.E(j, feat2_i)
+                pred_j = self.E(j, feat2_i)  # 第j个域的专家网络expert的预测
                 pred_j = pred_j.unsqueeze(1)
                 cr_pred.append(pred_j)
             cr_pred = torch.cat(cr_pred, 1)
-            cr_pred = cr_pred.mean(1)
-            loss_cr += ((cr_pred - expert_label_i)**2).sum(1).mean()
+            cr_pred = cr_pred.mean(1)  # 其他域的平均预测结果
+            loss_cr += ((cr_pred - expert_label_i)**2).sum(1).mean()  # 一致性L2 loss
 
         loss_x /= self.n_domain
         loss_cr /= self.n_domain

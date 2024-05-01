@@ -300,7 +300,7 @@ class TrainerBase:
     def model_backward_and_update(self, loss, names=None):
         self.model_zero_grad(names)
         self.model_backward(loss)
-        self.model_update(names)
+        self.model_update(names)  # 更新names对应net的梯度
 
 
 class SimpleTrainer(TrainerBase):
@@ -321,8 +321,8 @@ class SimpleTrainer(TrainerBase):
         self.output_dir = cfg.OUTPUT_DIR
 
         self.cfg = cfg
-        self.build_data_loader()#构建数据加载器
-        self.build_model()#构建模型
+        self.build_data_loader()  # 先构建数据加载器
+        self.build_model()  # 再构建模型
         self.evaluator = build_evaluator(cfg, lab2cname=self.lab2cname)
         self.best_result = -np.inf
 

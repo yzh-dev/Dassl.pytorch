@@ -102,8 +102,7 @@ def main(args):
 
     print_args(args, cfg)
     print("Collecting env info ...")
-    print("** System info **\n{}\n".format(collect_env_info()))
-
+    # print("** System info **\n{}\n".format(collect_env_info()))
     trainer = build_trainer(cfg)
 
     if args.eval_only:
@@ -123,16 +122,17 @@ if __name__ == "__main__":
                         help="checkpoint directory (from which the training resumes)", )
     parser.add_argument("--seed", type=int, default=42, help="only positive value enables a fixed seed")
 
-    # DA  for office31 from amazon to webcam
+    # ------------------------------DA-------------------------
+    # DA  for SourceOnly
     # parser.add_argument("--trainer", type=str, default="SourceOnly", help="name of trainer")
-    # parser.add_argument("--source-domains", type=str, nargs="+", default=["amazon"], help="source domains for DA/DG")
-    # parser.add_argument("--target-domains", type=str, nargs="+", default=["webcam"], help="target domains for DA/DG")
     # parser.add_argument("--config-file", type=str, default="../configs/trainers/da/source_only/office31.yaml",
     #                     help="path to config file")
     # parser.add_argument("--dataset-config-file", type=str, default="../configs/datasets/da/office31.yaml",
     #                     help="path to config file for dataset setup", )
+    # parser.add_argument("--source-domains", type=str, nargs="+", default=["amazon"], help="source domains for DA/DG")
+    # parser.add_argument("--target-domains", type=str, nargs="+", default=["webcam"], help="target domains for DA/DG")
 
-    # DA  for domain_net from clipart to infograph
+    # DA  for SourceOnly
     # parser.add_argument("--trainer", type=str, default="SourceOnly", help="name of trainer")
     # parser.add_argument("--source-domains", type=str, nargs="+", default=["clipart"], help="source domains for DA/DG")
     # parser.add_argument("--target-domains", type=str, nargs="+", default=["infograph"], help="target domains for DA/DG")
@@ -141,25 +141,144 @@ if __name__ == "__main__":
     # parser.add_argument("--dataset-config-file", type=str, default="../configs/datasets/da/domainnet.yaml",
     #                     help="path to config file for dataset setup", )
 
-    # DG for office-home
-    # parser.add_argument("--trainer", type=str, default="Vanilla", help="name of trainer")
-    # parser.add_argument("--source-domains", type=str, nargs="+", default=["art", "clipart"],
+    # DA  for DANN
+    # parser.add_argument("--trainer", type=str, default="DANN", help="name of trainer")
+    # parser.add_argument("--source-domains", type=str, nargs="+", default=["clipart", "infograph", "painting"],
     #                     help="source domains for DA/DG")
-    # parser.add_argument("--target-domains", type=str, nargs="+", default=["product"], help="target domains for DA/DG")
-    # parser.add_argument("--config-file", type=str, default="../configs/trainers/dg/vanilla/office_home_dg.yaml",
+    # parser.add_argument("--target-domains", type=str, nargs="+", default=["quickdraw"], help="target domains for DA/DG")
+    # parser.add_argument("--config-file", type=str, default="../configs/trainers/da/dann/domainnet.yaml",
+    #                     help="path to config file")
+    # parser.add_argument("--dataset-config-file", type=str, default="../configs/datasets/da/domainnet.yaml",
+    #                     help="path to config file for dataset setup", )
+
+    # DA  for ADDA
+    # parser.add_argument("--trainer", type=str, default="ADDA", help="name of trainer")
+    # parser.add_argument("--source-domains", type=str, nargs="+", default=["clipart", "infograph", "painting"],
+    #                     help="source domains for DA/DG")
+    # parser.add_argument("--target-domains", type=str, nargs="+", default=["quickdraw"], help="target domains for DA/DG")
+    # parser.add_argument("--config-file", type=str, default="../configs/trainers/da/adda/domainnet.yaml",
+    #                     help="path to config file")
+    # parser.add_argument("--dataset-config-file", type=str, default="../configs/datasets/da/domainnet.yaml",
+    #                     help="path to config file for dataset setup", )
+
+    # DA  for SE
+    # parser.add_argument("--trainer", type=str, default="SE", help="name of trainer")
+    # parser.add_argument("--source-domains", type=str, nargs="+", default=["clipart", "infograph", "painting"],
+    #                     help="source domains for DA/DG")
+    # parser.add_argument("--target-domains", type=str, nargs="+", default=["quickdraw"], help="target domains for DA/DG")
+    # parser.add_argument("--config-file", type=str, default="../configs/trainers/da/se/domainnet.yaml",
+    #                     help="path to config file")
+    # parser.add_argument("--dataset-config-file", type=str, default="../configs/datasets/da/domainnet.yaml",
+    #                     help="path to config file for dataset setup", )
+
+    # DA  for MME
+    # parser.add_argument("--trainer", type=str, default="MME", help="name of trainer")
+    # parser.add_argument("--source-domains", type=str, nargs="+", default=["clipart", "infograph", "painting"],
+    #                     help="source domains for DA/DG")
+    # parser.add_argument("--target-domains", type=str, nargs="+", default=["quickdraw"], help="target domains for DA/DG")
+    # parser.add_argument("--config-file", type=str, default="../configs/trainers/da/mme/domainnet.yaml",
+    #                     help="path to config file")
+    # parser.add_argument("--dataset-config-file", type=str, default="../configs/datasets/da/domainnet.yaml",
+    #                     help="path to config file for dataset setup", )
+
+    # DA  for CDAC
+    # parser.add_argument("--trainer", type=str, default="CDAC", help="name of trainer")
+    # parser.add_argument("--source-domains", type=str, nargs="+", default=["clipart","infograph","painting"], help="source domains for DA/DG")
+    # parser.add_argument("--target-domains", type=str, nargs="+", default=["quickdraw"], help="target domains for DA/DG")
+    # parser.add_argument("--config-file", type=str, default="../configs/trainers/da/cdac/domainnet.yaml",
+    #                     help="path to config file")
+    # parser.add_argument("--dataset-config-file", type=str, default="../configs/datasets/da/domainnet.yaml",
+    #                     help="path to config file for dataset setup", )
+
+    # DA  for M3SDA
+    # parser.add_argument("--trainer", type=str, default="M3SDA", help="name of trainer")
+    # parser.add_argument("--source-domains", type=str, nargs="+", default=["clipart","infograph","painting"], help="source domains for DA/DG")
+    # parser.add_argument("--target-domains", type=str, nargs="+", default=["quickdraw"], help="target domains for DA/DG")
+    # parser.add_argument("--config-file", type=str, default="../configs/trainers/da/m3sda/domainnet.yaml",
+    #                     help="path to config file")
+    # parser.add_argument("--dataset-config-file", type=str, default="../configs/datasets/da/domainnet.yaml",
+    #                     help="path to config file for dataset setup", )
+
+    # DA  for DAEL：use both labeled and unlabled data
+    # parser.add_argument("--trainer", type=str, default="DAEL", help="name of trainer")
+    # parser.add_argument("--config-file", type=str, default="../configs/trainers/da/dael/domainnet.yaml",
+    #                     help="path to config file")
+    # parser.add_argument("--dataset-config-file", type=str, default="../configs/datasets/da/domainnet.yaml",
+    #                     help="path to config file for dataset setup", )
+    # parser.add_argument("--source-domains", type=str, nargs="+", default=["clipart","infograph","painting"], help="source domains for DA/DG")
+    # parser.add_argument("--target-domains", type=str, nargs="+", default=["quickdraw"], help="target domains for DA/DG")
+
+    # ------------------------------DG-------------------------
+    # DG for Vanilla
+    # parser.add_argument("--trainer", type=str, default="Vanilla", help="name of trainer")
+    # parser.add_argument("--source-domains", type=str, nargs="+", default=["art", "clipart"])
+    # parser.add_argument("--target-domains", type=str, nargs="+", default=["product"])
+    # parser.add_argument("--config-file", type=str, default="../configs/trainers/dg/vanilla/office_home_dg.yaml")
+    # parser.add_argument("--dataset-config-file", type=str, default="../configs/datasets/dg/office_home_dg.yaml")
+
+    # DG for DAEL算法：only use labeled source data.
+    # parser.add_argument("--trainer", type=str, default="DAELDG", help="name of trainer")
+    # parser.add_argument("--config-file", type=str, default="../configs/trainers/dg/daeldg/office_home_dg.yaml",
     #                     help="path to config file")
     # parser.add_argument("--dataset-config-file", type=str, default="../configs/datasets/dg/office_home_dg.yaml",
-    #                     help="path to config file for dataset setup", )
+    # help="path to config file for dataset setup", )
 
     # DG for ddaig算法
     parser.add_argument("--trainer", type=str, default="DDAIG", help="name of trainer")
-    parser.add_argument("--source-domains", type=str, nargs="+", default=["art", "clipart"],
-                        help="source domains for DA/DG")
-    parser.add_argument("--target-domains", type=str, nargs="+", default=["product"], help="target domains for DA/DG")
-    parser.add_argument("--config-file", type=str, default="../configs/trainers/dg/ddaig/office_home_dg.yaml",
-                        help="path to config file")
-    parser.add_argument("--dataset-config-file", type=str, default="../configs/datasets/dg/office_home_dg.yaml",
-                        help="path to config file for dataset setup", )
+    parser.add_argument("--config-file", type=str, default="../configs/trainers/dg/ddaig/office_home_dg.yaml")
+    parser.add_argument("--dataset-config-file", type=str, default="../configs/datasets/dg/office_home_dg.yaml")
+    parser.add_argument("--source-domains", type=str, nargs="+", default=["art", "clipart", "real_world"])
+    parser.add_argument("--target-domains", type=str, nargs="+", default=["product"])
+
+    # DG for DomainMix算法
+    # parser.add_argument("--trainer", type=str, default="DomainMix", help="name of trainer")
+    # parser.add_argument("--config-file", type=str, default="../configs/trainers/dg/vanilla/office_home_dg.yaml")
+    # parser.add_argument("--dataset-config-file", type=str, default="../configs/datasets/dg/office_home_dg.yaml")
+    # parser.add_argument("--source-domains", type=str, nargs="+", default=["art", "clipart", "real_world"])
+    # parser.add_argument("--target-domains", type=str, nargs="+", default=["product"])
+
+
+    # DG for CrossGrad算法
+    # parser.add_argument("--trainer", type=str, default="CrossGrad", help="name of trainer")
+    # parser.add_argument("--config-file", type=str, default="../configs/trainers/dg/vanilla/office_home_dg.yaml")
+    # parser.add_argument("--dataset-config-file", type=str, default="../configs/datasets/dg/office_home_dg.yaml")
+    # parser.add_argument("--source-domains", type=str, nargs="+", default=["art", "clipart", "real_world"])
+    # parser.add_argument("--target-domains", type=str, nargs="+", default=["product"])
+
+    # ------------------------------SSL-------------------------
+    # # SSL for EntMin
+    # parser.add_argument("--trainer", type=str, default="EntMin", help="name of trainer")
+    # parser.add_argument("--config-file", type=str, default="../configs/trainers/ssl/fixmatch/cifar10.yaml",
+    #                     help="path to config file")
+    # parser.add_argument("--dataset-config-file", type=str, default="../configs/datasets/ssl/cifar10.yaml",
+    #                     help="path to config file for dataset setup", )
+
+    # SSL for MeanTeacher
+    # parser.add_argument("--trainer", type=str, default="MeanTeacher", help="name of trainer")
+    # parser.add_argument("--config-file", type=str, default="../configs/trainers/ssl/fixmatch/cifar10.yaml",
+    #                     help="path to config file")
+    # parser.add_argument("--dataset-config-file", type=str, default="../configs/datasets/ssl/cifar10.yaml",
+    #                     help="path to config file for dataset setup",)
+
+    # SSL for MixMatch
+    # parser.add_argument("--trainer", type=str, default="MixMatch", help="name of trainer")
+    # parser.add_argument("--config-file", type=str, default="../configs/trainers/ssl/mixmatch/cifar10.yaml",
+    #                     help="path to config file")
+    # parser.add_argument("--dataset-config-file", type=str, default="../configs/datasets/ssl/cifar10.yaml",
+    #                     help="path to config file for dataset setup",)
+    # parser.add_argument("--source-domains", type=str, nargs="+", default=["art", "clipart", "real_world"],
+    #                     help="SSL任务实际上不需要source-domains和target-domains属性")
+    # parser.add_argument("--target-domains", type=str, nargs="+", default=["product"], help="target domains for DA/DG")
+
+    # SSL for FixMatch
+    # parser.add_argument("--trainer", type=str, default="FixMatch", help="name of trainer")
+    # parser.add_argument("--config-file", type=str, default="../configs/trainers/ssl/fixmatch/cifar10.yaml",
+    #                     help="path to config file")
+    # parser.add_argument("--dataset-config-file", type=str, default="../configs/datasets/ssl/cifar10.yaml",
+    #                     help="path to config file for dataset setup", )
+    # parser.add_argument("--source-domains", type=str, nargs="+", default=["art", "clipart", "real_world"],
+    #                     help="SSL任务实际上不需要source-domains和target-domains属性")
+    # parser.add_argument("--target-domains", type=str, nargs="+", default=["product"], help="target domains for DA/DG")
 
     parser.add_argument("--backbone", type=str, default="", help="name of CNN backbone")
     parser.add_argument("--transforms", type=str, nargs="+", help="data augmentation methods")

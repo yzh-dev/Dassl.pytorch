@@ -73,5 +73,5 @@ def ema_model_update(model, ema_model, alpha):
         ema_model (nn.Module): ema of the model.
         alpha (float): ema decay rate.
     """
-    for ema_param, param in zip(ema_model.parameters(), model.parameters()):
+    for ema_param, param in zip(ema_model.parameters(), model.parameters()):  # ema_model：teacher, model:student
         ema_param.data.mul_(alpha).add_(param.data, alpha=1 - alpha)

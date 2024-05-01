@@ -27,7 +27,7 @@ class Prototypes(nn.Module):
 @TRAINER_REGISTRY.register()
 class MME(TrainerXU):
     """Minimax Entropy.
-
+    # _19 CVPR MME Semi-supervised Domain Adaptation via Minimax Entropy.pdf
     https://arxiv.org/abs/1904.06487.
     """
 
@@ -58,15 +58,16 @@ class MME(TrainerXU):
 
     def forward_backward(self, batch_x, batch_u):
         input_x, label_x, input_u = self.parse_batch_train(batch_x, batch_u)
-
+        # supervised loss
         feat_x = self.F(input_x)
         logit_x = self.C(feat_x)
         loss_x = F.cross_entropy(logit_x, label_x)
         self.model_backward_and_update(loss_x)
 
+        # Minimax Entropy loss
         feat_u = self.F(input_u)
-        feat_u = self.revgrad(feat_u)
-        logit_u = self.C(feat_u)
+        feat_u = self.revgrad(feat_u)  # 梯度反转，因此，下面的损失函数有个负号
+        logit_u = self.C(feat_u)  # 目标：尽量使各个类别的差异变大，即熵变小
         prob_u = F.softmax(logit_u, 1)
         loss_u = -(-prob_u * torch.log(prob_u + 1e-5)).sum(1).mean()
         self.model_backward_and_update(loss_u * self.lmda)

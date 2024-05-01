@@ -6,8 +6,7 @@ from dassl.engine import TRAINER_REGISTRY, TrainerXU
 
 @TRAINER_REGISTRY.register()
 class AdaBN(TrainerXU):
-    """Adaptive Batch Normalization.
-
+    """_17 ICLR adabn Revisiting Batch Normalization For Practical Domain Adaptation.pdf
     https://arxiv.org/abs/1603.04779.
     """
 
@@ -31,7 +30,7 @@ class AdaBN(TrainerXU):
 
     def forward_backward(self, batch_x, batch_u):
         input_u = batch_u["img"].to(self.device)
-
+        # 只利用了无标签样本？未更新模型参数？
         with torch.no_grad():
             self.model(input_u)
 

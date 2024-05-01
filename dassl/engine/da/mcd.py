@@ -11,7 +11,7 @@ from dassl.engine.trainer import SimpleNet
 @TRAINER_REGISTRY.register()
 class MCD(TrainerXU):
     """Maximum Classifier Discrepancy.
-
+    # _18 CVPR MCD Maximum Classifier Discrepancy for Unsupervised Domain Adaptation.pdf
     https://arxiv.org/abs/1712.02560.
     """
 
@@ -51,39 +51,42 @@ class MCD(TrainerXU):
         parsed = self.parse_batch_train(batch_x, batch_u)
         input_x, label_x, input_u = parsed
 
-        # Step A
+        # Step A，同时训练feat net和clf net
         feat_x = self.F(input_x)
         logit_x1 = self.C1(feat_x)
         logit_x2 = self.C2(feat_x)
         loss_x1 = F.cross_entropy(logit_x1, label_x)
         loss_x2 = F.cross_entropy(logit_x2, label_x)
         loss_step_A = loss_x1 + loss_x2
-        self.model_backward_and_update(loss_step_A)
+        self.model_backward_and_update(loss_step_A)  # 类别损失
 
-        # Step B
+        # Figure2 in paper p3
+        # Step B，只训练clf net
+        # two classifiers that maximize the discrepancy on the target sample,
         with torch.no_grad():
             feat_x = self.F(input_x)
         logit_x1 = self.C1(feat_x)
         logit_x2 = self.C2(feat_x)
         loss_x1 = F.cross_entropy(logit_x1, label_x)
         loss_x2 = F.cross_entropy(logit_x2, label_x)
-        loss_x = loss_x1 + loss_x2
+        loss_x = loss_x1 + loss_x2  # 有标签样本，损失越小越好
 
         with torch.no_grad():
             feat_u = self.F(input_u)
         pred_u1 = F.softmax(self.C1(feat_u), 1)
         pred_u2 = F.softmax(self.C2(feat_u), 1)
-        loss_dis = self.discrepancy(pred_u1, pred_u2)
+        loss_dis = self.discrepancy(pred_u1, pred_u2)  # 无标签样本：两个分类头的预测差异，期望差异越大越好
 
         loss_step_B = loss_x - loss_dis
         self.model_backward_and_update(loss_step_B, ["C1", "C2"])
 
-        # Step C
+        # Step C，只训练feat net
+        # generate features that minimize this discrepancy
         for _ in range(self.n_step_F):
             feat_u = self.F(input_u)
             pred_u1 = F.softmax(self.C1(feat_u), 1)
             pred_u2 = F.softmax(self.C2(feat_u), 1)
-            loss_step_C = self.discrepancy(pred_u1, pred_u2)
+            loss_step_C = self.discrepancy(pred_u1, pred_u2)  # 无标签样本：两个分类头的预测差异，期望差异越小越好
             self.model_backward_and_update(loss_step_C, "F")
 
         loss_summary = {

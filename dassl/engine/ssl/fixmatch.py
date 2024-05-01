@@ -9,10 +9,9 @@ from dassl.data.transforms import build_transform
 
 @TRAINER_REGISTRY.register()
 class FixMatch(TrainerXU):
-    """FixMatch: Simplifying Semi-Supervised Learning with
-    Consistency and Confidence.
-
+    """FixMatch: Simplifying Semi-Supervised Learning with Consistency and Confidence.
     https://arxiv.org/abs/2001.07685.
+    # 解读 https://blog.csdn.net/qq_41380292/article/details/119320167
     """
 
     def __init__(self, cfg):
@@ -26,16 +25,18 @@ class FixMatch(TrainerXU):
     def build_data_loader(self):
         cfg = self.cfg
         tfm_train = build_transform(cfg, is_train=True)
-        custom_tfm_train = [tfm_train]
-        choices = cfg.TRAINER.FIXMATCH.STRONG_TRANSFORMS
+        custom_tfm_train = [tfm_train]  # 默认变换
+        choices = cfg.TRAINER.FIXMATCH.STRONG_TRANSFORMS  # FIXMATCH指定进行的变换
         tfm_train_strong = build_transform(cfg, is_train=True, choices=choices)
-        custom_tfm_train += [tfm_train_strong]
+        custom_tfm_train += [tfm_train_strong]  # 进行两种类型的变换
         self.dm = DataManager(self.cfg, custom_tfm_train=custom_tfm_train)
         self.train_loader_x = self.dm.train_loader_x
         self.train_loader_u = self.dm.train_loader_u
         self.val_loader = self.dm.val_loader
         self.test_loader = self.dm.test_loader
         self.num_classes = self.dm.num_classes
+        self.lab2cname =  self.dm.lab2cname  # dict {label: classname}
+
 
     def assess_y_pred_quality(self, y_pred, y_true, mask):
         n_masked_correct = (y_pred.eq(y_true).float() * mask).sum()
@@ -52,7 +53,7 @@ class FixMatch(TrainerXU):
     def forward_backward(self, batch_x, batch_u):
         parsed_data = self.parse_batch_train(batch_x, batch_u)
         input_x, input_x2, label_x, input_u, input_u2, label_u = parsed_data
-        input_u = torch.cat([input_x, input_u], 0)
+        input_u = torch.cat([input_x, input_u], 0)  # 弱增强样本（含有标签、无标签）
         input_u2 = torch.cat([input_x2, input_u2], 0)
         n_x = input_x.size(0)
 
@@ -62,18 +63,16 @@ class FixMatch(TrainerXU):
             max_prob, label_u_pred = output_u.max(1)
             mask_u = (max_prob >= self.conf_thre).float()
 
-            # Evaluate pseudo labels' accuracy
-            y_u_pred_stats = self.assess_y_pred_quality(
-                label_u_pred[n_x:], label_u, mask_u[n_x:]
-            )
+            # Evaluate pseudo labels' accuracy，只评估无标签样本
+            y_u_pred_stats = self.assess_y_pred_quality(label_u_pred[n_x:], label_u, mask_u[n_x:])
 
         # Supervised loss
         output_x = self.model(input_x)
         loss_x = F.cross_entropy(output_x, label_x)
 
-        # Unsupervised loss
-        output_u = self.model(input_u2)
-        loss_u = F.cross_entropy(output_u, label_u_pred, reduction="none")
+        # Unsupervised loss，labeled and unlabeled loss under strong aug
+        output_u = self.model(input_u2)  # 强增强下的pred
+        loss_u = F.cross_entropy(output_u, label_u_pred, reduction="none")  # 将弱增强下的预测作为gt
         loss_u = (loss_u * mask_u).mean()
 
         loss = loss_x + loss_u * self.weight_u
@@ -94,8 +93,8 @@ class FixMatch(TrainerXU):
         return loss_summary
 
     def parse_batch_train(self, batch_x, batch_u):
-        input_x = batch_x["img"]
-        input_x2 = batch_x["img2"]
+        input_x = batch_x["img"]  # 弱增强样本（有标签）
+        input_x2 = batch_x["img2"]  # 强增强样本（有标签）
         label_x = batch_x["label"]
         input_u = batch_u["img"]
         input_u2 = batch_u["img2"]

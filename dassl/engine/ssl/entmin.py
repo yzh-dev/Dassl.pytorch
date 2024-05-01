@@ -18,10 +18,10 @@ class EntMin(TrainerXU):
 
     def forward_backward(self, batch_x, batch_u):
         input_x, label_x, input_u = self.parse_batch_train(batch_x, batch_u)
-
+        # 有标签损失
         output_x = self.model(input_x)
         loss_x = F.cross_entropy(output_x, label_x)
-
+        # 无标签样本的熵最小化损失：对预测结果越确信，熵越小
         output_u = F.softmax(self.model(input_u), 1)
         loss_u = (-output_u * torch.log(output_u + 1e-5)).sum(1).mean()
 

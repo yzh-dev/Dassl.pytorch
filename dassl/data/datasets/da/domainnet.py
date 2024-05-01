@@ -30,10 +30,8 @@ class DomainNet(DatasetBase):
         self.dataset_dir = osp.join(root, self.dataset_dir)
         self.split_dir = osp.join(self.dataset_dir, "splits")
 
-        self.check_input_domains(
-            cfg.DATASET.SOURCE_DOMAINS, cfg.DATASET.TARGET_DOMAINS
-        )
-
+        self.check_input_domains(cfg.DATASET.SOURCE_DOMAINS, cfg.DATASET.TARGET_DOMAINS)
+        # 读取数据集
         train_x = self._read_data(cfg.DATASET.SOURCE_DOMAINS, split="train")
         train_u = self._read_data(cfg.DATASET.TARGET_DOMAINS, split="train")
         val = self._read_data(cfg.DATASET.SOURCE_DOMAINS, split="test")

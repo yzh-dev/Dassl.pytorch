@@ -1,3 +1,4 @@
+import os
 import sys
 import os.path as osp
 from torchvision.datasets import STL10
@@ -39,4 +40,4 @@ def download_and_prepare(root):
 
 
 if __name__ == "__main__":
-    download_and_prepare(sys.argv[1])
+    download_and_prepare(os.path.curdir)

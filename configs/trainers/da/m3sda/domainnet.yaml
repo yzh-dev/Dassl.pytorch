@@ -1,7 +1,8 @@
 DATALOADER:
   TRAIN_X:
     SAMPLER: "RandomDomainSampler"
-    BATCH_SIZE: 30
+#    BATCH_SIZE: 30
+    BATCH_SIZE: 10
   TRAIN_U:
     SAME_AS_X: False
     BATCH_SIZE: 6

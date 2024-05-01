@@ -52,7 +52,7 @@ def run_with_efdmix(model, mix=None):
 
 class EFDMix(nn.Module):
     """EFDMix.
-
+    # 论文解读： https://blog.csdn.net/qq_38313674/article/details/125900623
     Reference:
       Zhang et al. Exact Feature Distribution Matching for Arbitrary Style Transfer and Domain Generalization. CVPR 2022.
     """

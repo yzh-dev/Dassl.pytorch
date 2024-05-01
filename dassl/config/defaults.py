@@ -106,7 +106,8 @@ _C.DATALOADER.TRAIN_X.BATCH_SIZE = 32
 _C.DATALOADER.TRAIN_X.N_DOMAIN = 0
 # Parameter of RandomClassSampler
 # Number of instances per class
-_C.DATALOADER.TRAIN_X.N_INS = 16
+# _C.DATALOADER.TRAIN_X.N_INS = 16
+_C.DATALOADER.TRAIN_X.N_INS = 4
 
 # Setting for the train_u data-loader
 _C.DATALOADER.TRAIN_U = CN()
@@ -155,6 +156,7 @@ _C.OPTIM.MOMENTUM = 0.9
 _C.OPTIM.SGD_DAMPNING = 0
 _C.OPTIM.SGD_NESTEROV = False
 _C.OPTIM.RMSPROP_ALPHA = 0.99
+_C.OPTIM.RAMPUP_ITRS = 10000
 # The following also apply to other
 # adaptive optimizers like adamw
 _C.OPTIM.ADAM_BETA1 = 0.9

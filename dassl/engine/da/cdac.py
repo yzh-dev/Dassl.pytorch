@@ -151,58 +151,44 @@ class CDAC(TrainerXU):
     def forward_backward(self, batch_x, batch_u):
 
         current_itr = self.epoch * self.num_batches + self.batch_idx
-
-        input_x, label_x, input_u, input_us, input_us2, label_u = self.parse_batch_train(
-            batch_x, batch_u
-        )
+        # 有标签weak aug，无标签weak aug, strong aug1, strong aug2
+        input_x, label_x, input_u, input_us, input_us2, label_u = self.parse_batch_train(batch_x, batch_u)
 
         # Paper Reference Eq. 2 - Supervised Loss
-
         feat_x = self.F(input_x)
         logit_x = self.C(feat_x)
         loss_x = F.cross_entropy(logit_x, label_x)
-
         self.model_backward_and_update(loss_x)
 
-        feat_u = self.F(input_u)
-        feat_us = self.F(input_us)
-        feat_us2 = self.F(input_us2)
+        # 无标签样本
+        feat_u = self.F(input_u)  # weak aug feat, from this feat to get similar pairs
+        feat_us = self.F(input_us)  # strong aug1 feat
+        feat_us2 = self.F(input_us2)  # strong aug2 feat
 
         # Paper Reference Eq.3 - Adversarial Adaptive Loss
-        logit_u = self.C(feat_u, reverse=True)
+        logit_u = self.C(feat_u, reverse=True)  # 加了梯度反转，因此aac_loss要乘以-1
         logit_us = self.C(feat_us, reverse=True)
         prob_u, prob_us = F.softmax(logit_u, dim=1), F.softmax(logit_us, dim=1)
-
         # Get similarity matrix s_ij
-        sim_mat = self.get_similarity_matrix(feat_u, self.topk, self.device)
-
-        aac_loss = (-1. * self.aac_criterion(sim_mat, prob_u, prob_us))
+        # 无标签weak aug样本，计算相似对（类似于对比损失的想法）
+        # 如果两个样本在其各自的排序特征元素列表中共享相同的topk索引，则配对样本属于同一类且置信度较高，因此s_ij=1
+        sim_mat = self.get_similarity_matrix(feat_u, self.topk, self.device)  # B*B
+        aac_loss = (-1. * self.aac_criterion(sim_mat, prob_u, prob_us))  # 想法：相似样本对weak aug与strong aug1的预测结果应保持一致
 
         # Paper Reference Eq. 4 - Pseudo label Loss
-        logit_u = self.C(feat_u)
-        logit_us = self.C(feat_us)
-        logit_us2 = self.C(feat_us2)
-        prob_u, prob_us, prob_us2 = F.softmax(
-            logit_u, dim=1
-        ), F.softmax(
-            logit_us, dim=1
-        ), F.softmax(
-            logit_us2, dim=1
-        )
+        logit_u = self.C(feat_u)  # weak aug logits
+        logit_us = self.C(feat_us)  # strong aug1 logits
+        logit_us2 = self.C(feat_us2)  # strong aug2 logits
+        prob_u, prob_us, prob_us2 = F.softmax(logit_u, dim=1), F.softmax(logit_us, dim=1), F.softmax(logit_us2, dim=1)
         prob_u = prob_u.detach()
-        max_probs, max_idx = torch.max(prob_u, dim=-1)
+        max_probs, max_idx = torch.max(prob_u, dim=-1)  # weak aug的预测结果作为监督信号
         mask = max_probs.ge(self.p_thresh).float()
         p_u_stats = self.assess_y_pred_quality(max_idx, label_u, mask)
-
-        pl_loss = (
-            F.cross_entropy(logit_us2, max_idx, reduction='none') * mask
-        ).mean()
+        pl_loss = (F.cross_entropy(logit_us2, max_idx, reduction='none') * mask).mean()  # weak aug作为gt的strong aug2的预测损失
 
         # Paper Reference Eq. 8 - Consistency Loss
-        cons_multi = self.sigmoid_rampup(
-            current_itr=current_itr, rampup_itr=self.rampup_iters
-        ) * self.rampup_coef
-        cons_loss = cons_multi * F.mse_loss(prob_us, prob_us2)
+        cons_multi = self.sigmoid_rampup(current_itr=current_itr, rampup_itr=self.rampup_iters) * self.rampup_coef
+        cons_loss = cons_multi * F.mse_loss(prob_us, prob_us2)  # 一致性损失：strong aug1与strong aug2的预测MSE损失
 
         loss_u = aac_loss + pl_loss + cons_loss
 
@@ -227,13 +213,13 @@ class CDAC(TrainerXU):
         return loss_summary
 
     def parse_batch_train(self, batch_x, batch_u):
-
+        # 有标签样本，只采集weak aug
         input_x = batch_x["img"][0]
         label_x = batch_x["label"]
-
-        input_u = batch_u["img"][0]
-        input_us = batch_u["img2"][0]
-        input_us2 = batch_u["img2"][1]
+        # 无标签样本
+        input_u = batch_u["img"][0]  # weak aug
+        input_us = batch_u["img2"][0]  # strong aug1
+        input_us2 = batch_u["img2"][1]  # strong aug2
         label_u = batch_u["label"]
 
         input_x = input_x.to(self.device)
@@ -254,9 +240,7 @@ class CDAC(TrainerXU):
 
         feat_d = feat.detach()
 
-        feat_d = torch.sort(
-            torch.argsort(feat_d, dim=1, descending=True)[:, :topk], dim=1
-        )[0]
+        feat_d = torch.sort(torch.argsort(feat_d, dim=1, descending=True)[:, :topk], dim=1)[0]
         sim_mat = torch.zeros((feat_d.shape[0], feat_d.shape[0])).to(device)
         for row in range(feat_d.shape[0]):
             sim_mat[row, torch.all(feat_d == feat_d[row, :], dim=1)] = 1

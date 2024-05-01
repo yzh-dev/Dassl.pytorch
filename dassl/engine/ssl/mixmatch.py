@@ -11,7 +11,7 @@ from dassl.modeling.ops.utils import (
 @TRAINER_REGISTRY.register()
 class MixMatch(TrainerXU):
     """MixMatch: A Holistic Approach to Semi-Supervised Learning.
-
+    # 可参考解读 https://blog.csdn.net/qq_41380292/article/details/119277938?spm=1001.2014.3001.5501
     https://arxiv.org/abs/1905.02249.
     """
 
@@ -36,20 +36,20 @@ class MixMatch(TrainerXU):
         with torch.no_grad():
             output_u = 0
             for input_ui in input_u:
-                output_ui = F.softmax(self.model(input_ui), 1)
-                output_u += output_ui
-            output_u /= len(input_u)
-            label_u = sharpen_prob(output_u, self.temp)
+                output_ui = F.softmax(self.model(input_ui), 1)   # Batch*Num_classes,沿着feat维度上计算，获取预测prob
+                output_u += output_ui  # K种变换下的预测进行累加
+            output_u /= len(input_u)  # 计算K种变换下的平均预测
+            label_u = sharpen_prob(output_u, self.temp)  # 将预测值进行sharpen
             label_u = [label_u] * len(input_u)
-            label_u = torch.cat(label_u, 0)
-            input_u = torch.cat(input_u, 0)
+            label_u = torch.cat(label_u, 0)  # 拼接K种变换下预测
+            input_u = torch.cat(input_u, 0)  # 拼接K种变换下label
 
         # Combine and shuffle labeled and unlabeled data
         input_xu = torch.cat([input_x, input_u], 0)
         label_xu = torch.cat([label_x, label_u], 0)
         input_xu, label_xu = shuffle_index(input_xu, label_xu)
 
-        # Mixup
+        # Mixup: labeled and all data
         input_x, label_x = mixup(
             input_x,
             input_xu[:num_x],
@@ -58,7 +58,7 @@ class MixMatch(TrainerXU):
             self.beta,
             preserve_order=True,
         )
-
+        # unlabeled and all data
         input_u, label_u = mixup(
             input_u,
             input_xu[num_x:],

@@ -69,7 +69,7 @@ class DAEL(TrainerXU):
     def build_model(self):
         cfg = self.cfg
 
-        print("Building F")
+        print("Building F")  # feat extract net
         self.F = SimpleNet(cfg, cfg.MODEL, 0)
         self.F.to(self.device)
         print("# params: {:,}".format(count_num_param(self.F)))
@@ -78,7 +78,7 @@ class DAEL(TrainerXU):
         self.register_model("F", self.F, self.optim_F, self.sched_F)
         fdim = self.F.fdim
 
-        print("Building E")
+        print("Building E")  # num_source_domains 个 expert net: linear clf
         self.E = Experts(self.num_source_domains, fdim, self.num_classes)
         self.E.to(self.device)
         print("# params: {:,}".format(count_num_param(self.E)))
@@ -98,54 +98,50 @@ class DAEL(TrainerXU):
 
         # Generate pseudo label
         with torch.no_grad():
-            feat_u = self.F(input_u)
+            feat_u = self.F(input_u)  # weak unlabeled img feat
             pred_u = []
-            for k in range(self.num_source_domains):
+            for k in range(self.num_source_domains):  # 对unlabeled img，K个源域分类头预测其类别
                 pred_uk = self.E(k, feat_u)
                 pred_uk = pred_uk.unsqueeze(1)
                 pred_u.append(pred_uk)
-            pred_u = torch.cat(pred_u, 1)  # (B, K, C)
+            pred_u = torch.cat(pred_u, 1)  # (B, K, C)  # 其中K是源域的个数
             # Get the highest probability and index (label) for each expert
             experts_max_p, experts_max_idx = pred_u.max(2)  # (B, K)
             # Get the most confident expert
-            max_expert_p, max_expert_idx = experts_max_p.max(1)  # (B)
+            max_expert_p, max_expert_idx = experts_max_p.max(1)  # (B), K个expert预测中取较大的作为伪标签
             pseudo_label_u = []
             for i, experts_label in zip(max_expert_idx, experts_max_idx):
-                pseudo_label_u.append(experts_label[i])
+                pseudo_label_u.append(experts_label[i])  #
             pseudo_label_u = torch.stack(pseudo_label_u, 0)
-            pseudo_label_u = create_onehot(pseudo_label_u, self.num_classes)
+            pseudo_label_u = create_onehot(pseudo_label_u, self.num_classes)  # one-hot lalel as gt
             pseudo_label_u = pseudo_label_u.to(self.device)
-            label_u_mask = (max_expert_p >= self.conf_thre).float()
+            label_u_mask = (max_expert_p >= self.conf_thre).float()  # 大于阈值的设置mask
 
+        # 有标签样本的CE loss和Consistency regularization loss
         loss_x = 0
         loss_cr = 0
         acc_x = 0
-
-        feat_x = [self.F(x) for x in input_x]
-        feat_x2 = [self.F(x) for x in input_x2]
-        feat_u2 = self.F(input_u2)
-
-        for feat_xi, feat_x2i, label_xi, i in zip(
-            feat_x, feat_x2, label_x, domain_x
-        ):
-            cr_s = [j for j in domain_x if j != i]
-
+        feat_x = [self.F(x) for x in input_x]  # weak aug labeled img feat
+        feat_x2 = [self.F(x) for x in input_x2]  # strong aug labeled img feat
+        feat_u2 = self.F(input_u2)  # strong unlabeled img feat
+        for feat_xi, feat_x2i, label_xi, i in zip(feat_x, feat_x2, label_x, domain_x):
+            cr_s = [j for j in domain_x if j != i]  # other different domain of source domains
             # Learning expert
-            pred_xi = self.E(i, feat_xi)
-            loss_x += (-label_xi * torch.log(pred_xi + 1e-5)).sum(1).mean()
-            expert_label_xi = pred_xi.detach()
-            acc_x += compute_accuracy(pred_xi.detach(),
-                                      label_xi.max(1)[1])[0].item()
+            pred_xi = self.E(i, feat_xi)  # weak aug labeled img pred
+            loss_x += (-label_xi * torch.log(pred_xi + 1e-5)).sum(1).mean()  # CE loss of weak aug labeled img
 
-            # Consistency regularization
+            expert_label_xi = pred_xi.detach()
+            acc_x += compute_accuracy(pred_xi.detach(), label_xi.max(1)[1])[0].item()
+
+            # Consistency regularization，计算weak aug pred与strong aug mean pred下的损失
             cr_pred = []
             for j in cr_s:
-                pred_j = self.E(j, feat_x2i)
+                pred_j = self.E(j, feat_x2i)  # strong aug labeled img pred
                 pred_j = pred_j.unsqueeze(1)
                 cr_pred.append(pred_j)
             cr_pred = torch.cat(cr_pred, 1)
-            cr_pred = cr_pred.mean(1)
-            loss_cr += ((cr_pred - expert_label_xi)**2).sum(1).mean()
+            cr_pred = cr_pred.mean(1)  # mead pred of other preds
+            loss_cr += ((cr_pred - expert_label_xi)**2).sum(1).mean()  # 一致性损失
 
         loss_x /= self.n_domain
         loss_cr /= self.n_domain
@@ -154,12 +150,12 @@ class DAEL(TrainerXU):
         # Unsupervised loss
         pred_u = []
         for k in range(self.num_source_domains):
-            pred_uk = self.E(k, feat_u2)
+            pred_uk = self.E(k, feat_u2)  # strong aug unlabeled pred
             pred_uk = pred_uk.unsqueeze(1)
             pred_u.append(pred_uk)
         pred_u = torch.cat(pred_u, 1)
-        pred_u = pred_u.mean(1)
-        l_u = (-pseudo_label_u * torch.log(pred_u + 1e-5)).sum(1)
+        pred_u = pred_u.mean(1)  # mean pred
+        l_u = (-pseudo_label_u * torch.log(pred_u + 1e-5)).sum(1)  # weak unlabeled pred as supervised gt
         loss_u = (l_u * label_u_mask).mean()
 
         loss = 0
@@ -181,12 +177,12 @@ class DAEL(TrainerXU):
         return loss_summary
 
     def parse_batch_train(self, batch_x, batch_u):
-        input_x = batch_x["img"]
-        input_x2 = batch_x["img2"]
+        input_x = batch_x["img"]  # weak aug
+        input_x2 = batch_x["img2"]  # strong aug
         label_x = batch_x["label"]
         domain_x = batch_x["domain"]
-        input_u = batch_u["img"]
-        input_u2 = batch_u["img2"]
+        input_u = batch_u["img"]  # unlabled image(weak aug)
+        input_u2 = batch_u["img2"]  # unlabled image(strong aug)
 
         label_x = create_onehot(label_x, self.num_classes)
 

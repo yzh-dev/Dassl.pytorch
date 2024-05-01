@@ -6,9 +6,7 @@ from torch.utils.data.sampler import Sampler, RandomSampler, SequentialSampler
 
 
 class RandomDomainSampler(Sampler):
-    """Randomly samples N domains each with K images
-    to form a minibatch of size N*K.
-
+    """Randomly samples N domains each with K images to form a minibatch of size N*K.
     Args:
         data_source (list): list of Datums.
         batch_size (int): batch size.
@@ -62,9 +60,7 @@ class RandomDomainSampler(Sampler):
 
 
 class SeqDomainSampler(Sampler):
-    """Sequential domain sampler, which randomly samples K
-    images from each domain to form a minibatch.
-
+    """Sequential domain sampler, which randomly samples K images from each domain to form a minibatch.
     Args:
         data_source (list): list of Datums.
         batch_size (int): batch size.
@@ -115,8 +111,7 @@ class SeqDomainSampler(Sampler):
 
 
 class RandomClassSampler(Sampler):
-    """Randomly samples N classes each with K instances to
-    form a minibatch of size N*K.
+    """Randomly samples N classes each with K instances to form a minibatch of size N*K.
 
     Modified from https://github.com/KaiyangZhou/deep-person-reid.
 
@@ -128,10 +123,7 @@ class RandomClassSampler(Sampler):
 
     def __init__(self, data_source, batch_size, n_ins):
         if batch_size < n_ins:
-            raise ValueError(
-                "batch_size={} must be no less "
-                "than n_ins={}".format(batch_size, n_ins)
-            )
+            raise ValueError("batch_size={} must be no less " "than n_ins={}".format(batch_size, n_ins))
 
         self.data_source = data_source
         self.batch_size = batch_size
@@ -184,20 +176,25 @@ def build_sampler(
     data_source=None,
     batch_size=32,
     n_domain=0,
-    n_ins=16
+    n_ins=16,
 ):
+    # 默认为随机采样方式，不考虑domain
     if sampler_type == "RandomSampler":
         return RandomSampler(data_source)
 
+    # Samples elements sequentially, always in the same order
     elif sampler_type == "SequentialSampler":
         return SequentialSampler(data_source)
 
+    # Randomly samples N domains each with K images to form a minibatch of size N*K=batch_size
     elif sampler_type == "RandomDomainSampler":
         return RandomDomainSampler(data_source, batch_size, n_domain)
 
+    # Sequential domain sampler, which randomly samples K images from each domain to form a minibatch
     elif sampler_type == "SeqDomainSampler":
         return SeqDomainSampler(data_source, batch_size)
 
+    # Randomly samples N classes each with K instances to form a minibatch of size N*K=batch_size
     elif sampler_type == "RandomClassSampler":
         return RandomClassSampler(data_source, batch_size, n_ins)
 

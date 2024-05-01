@@ -76,11 +76,11 @@ class DataManager:
         # Build train_loader_x
         train_loader_x = build_data_loader(
             cfg,
-            sampler_type=cfg.DATALOADER.TRAIN_X.SAMPLER,
+            sampler_type=cfg.DATALOADER.TRAIN_X.SAMPLER,  # 采样方式
             data_source=dataset.train_x,
             batch_size=cfg.DATALOADER.TRAIN_X.BATCH_SIZE,
             n_domain=cfg.DATALOADER.TRAIN_X.N_DOMAIN,
-            n_ins=cfg.DATALOADER.TRAIN_X.N_INS,
+            n_ins=cfg.DATALOADER.TRAIN_X.N_INS,  # number of instances per class to sample in a minibatch.
             tfm=tfm_train,
             is_train=True,
             dataset_wrapper=dataset_wrapper
@@ -94,7 +94,7 @@ class DataManager:
             n_domain_ = cfg.DATALOADER.TRAIN_U.N_DOMAIN
             n_ins_ = cfg.DATALOADER.TRAIN_U.N_INS
 
-            if cfg.DATALOADER.TRAIN_U.SAME_AS_X:
+            if cfg.DATALOADER.TRAIN_U.SAME_AS_X:  # 是否和train_x相同
                 sampler_type_ = cfg.DATALOADER.TRAIN_X.SAMPLER
                 batch_size_ = cfg.DATALOADER.TRAIN_X.BATCH_SIZE
                 n_domain_ = cfg.DATALOADER.TRAIN_X.N_DOMAIN
@@ -230,7 +230,7 @@ class DatasetWrapper(TorchDataset):
         img0 = read_image(item.impath)
 
         if self.transform is not None:
-            if isinstance(self.transform, (list, tuple)):
+            if isinstance(self.transform, (list, tuple)):   # 当存在多种类型变换时
                 for i, tfm in enumerate(self.transform):
                     img = self._transform_image(tfm, img0)
                     keyname = "img"

@@ -81,10 +81,10 @@ class MixStyle(nn.Module):
     def set_activation_status(self, status=True):
         self._activated = status
 
-    def update_mix_method(self, mix="random"):
+    def update_mix_method(self, mix="random"):  # 设置混合模式
         self.mix = mix
 
-    def forward(self, x):
+    def forward(self, x):  # MixStyle层(对任何一个特征层，可以进行style混合)，保持形状BCHW不变
         if not self.training or not self._activated:
             return x
 
@@ -92,21 +92,21 @@ class MixStyle(nn.Module):
             return x
 
         B = x.size(0)
-
+        # 所谓style是在HW维度上进行归一化，既Instance Normalization
         mu = x.mean(dim=[2, 3], keepdim=True)
         var = x.var(dim=[2, 3], keepdim=True)
         sig = (var + self.eps).sqrt()
-        mu, sig = mu.detach(), sig.detach()
-        x_normed = (x-mu) / sig
-
-        lmda = self.beta.sample((B, 1, 1, 1))
+        mu, sig = mu.detach(), sig.detach()  # 均值和标准差
+        x_normed = (x-mu) / sig  # 即为所谓的风格style
+        # lmda服从beita分布
+        lmda = self.beta.sample((B, 1, 1, 1))  # (B, 1, 1, 1)
         lmda = lmda.to(x.device)
 
         if self.mix == "random":
             # random shuffle
-            perm = torch.randperm(B)
+            perm = torch.randperm(B)  # 随机混合，不考虑domain
 
-        elif self.mix == "crossdomain":
+        elif self.mix == "crossdomain":  # 事实上并没有考虑domain进行混合
             # split into two halves and swap the order
             perm = torch.arange(B - 1, -1, -1)  # inverse index
             perm_b, perm_a = perm.chunk(2)
@@ -116,7 +116,7 @@ class MixStyle(nn.Module):
 
         else:
             raise NotImplementedError
-
+        # 随机与其他风格的进行混合
         mu2, sig2 = mu[perm], sig[perm]
         mu_mix = mu*lmda + mu2 * (1-lmda)
         sig_mix = sig*lmda + sig2 * (1-lmda)

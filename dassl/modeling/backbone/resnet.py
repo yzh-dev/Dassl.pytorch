@@ -120,9 +120,7 @@ class ResNet(Backbone):
         super().__init__()
 
         # backbone network
-        self.conv1 = nn.Conv2d(
-            3, 64, kernel_size=7, stride=2, padding=3, bias=False
-        )
+        self.conv1 = nn.Conv2d(3, 64, kernel_size=7, stride=2, padding=3, bias=False)
         self.bn1 = nn.BatchNorm2d(64)
         self.relu = nn.ReLU(inplace=True)
         self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
@@ -135,8 +133,8 @@ class ResNet(Backbone):
         self._out_features = 512 * block.expansion
 
         self.mixstyle = None
-        if ms_layers:
-            self.mixstyle = ms_class(p=ms_p, alpha=ms_a)
+        if ms_layers:  # 构造函数中指定是否用mixstyle
+            self.mixstyle = ms_class(p=ms_p, alpha=ms_a)  # 插入MixStyle层，保持形状不变
             for layer_name in ms_layers:
                 assert layer_name in ["layer1", "layer2", "layer3"]
             print(
@@ -193,7 +191,7 @@ class ResNet(Backbone):
         x = self.relu(x)
         x = self.maxpool(x)
         x = self.layer1(x)
-        if "layer1" in self.ms_layers:
+        if "layer1" in self.ms_layers:  # 判断哪些层进行mixstyle处理
             x = self.mixstyle(x)
         x = self.layer2(x)
         if "layer2" in self.ms_layers:
