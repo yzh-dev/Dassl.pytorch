@@ -4,7 +4,7 @@ import torch
 from dassl.utils import setup_logger, set_random_seed, collect_env_info
 from dassl.config import clean_cfg, get_cfg_default
 from dassl.engine import build_trainer
-
+import wandb
 
 def print_args(args, cfg):
     print("***************")
@@ -92,6 +92,11 @@ def setup_cfg(args):
 
 def main(args):
     cfg = setup_cfg(args)
+    # wandb.init(project="DG",
+    #            name="{}-{}-{}".format(args.trainer,
+    #                                   args.target_domains,
+    #                                   cfg.OPTIM.LR))
+
     if cfg.SEED >= 0:
         print("Setting fixed seed: {}".format(cfg.SEED))
         set_random_seed(cfg.SEED)

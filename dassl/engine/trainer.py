@@ -17,6 +17,7 @@ from dassl.utils import (
 )
 from dassl.modeling import build_head, build_backbone
 from dassl.evaluation import build_evaluator
+import wandb
 
 
 class SimpleNet(nn.Module):
@@ -115,9 +116,7 @@ class TrainerBase:
         else:
             return names_real
 
-    def save_model(
-        self, epoch, directory, is_best=False, val_result=None, model_name=""
-    ):
+    def save_model(self, epoch, directory, is_best=False, val_result=None, model_name=""):
         names = self.get_model_names()
 
         for name in names:
@@ -162,10 +161,7 @@ class TrainerBase:
 
         for name in names:
             path = osp.join(directory, name)
-            start_epoch = resume_from_checkpoint(
-                path, self._models[name], self._optims[name],
-                self._scheds[name]
-            )
+            start_epoch = resume_from_checkpoint(path, self._models[name], self._optims[name], self._scheds[name])
 
         return start_epoch
 
@@ -389,7 +385,7 @@ class SimpleTrainer(TrainerBase):
         directory = self.cfg.OUTPUT_DIR
         if self.cfg.RESUME:
             directory = self.cfg.RESUME
-        self.start_epoch = self.resume_model_if_exist(directory)
+        self.start_epoch = self.resume_model_if_exist(directory)  # resume from checkpoint
 
         # Initialize summary writer
         writer_dir = osp.join(self.output_dir, "tensorboard")
@@ -419,14 +415,14 @@ class SimpleTrainer(TrainerBase):
         # Close writer
         self.close_writer()
 
-    def after_epoch(self):
+    def after_epoch(self):  # jobs after each epoch
         last_epoch = (self.epoch + 1) == self.max_epoch
         do_test = not self.cfg.TEST.NO_TEST
         meet_checkpoint_freq = (
             (self.epoch + 1) % self.cfg.TRAIN.CHECKPOINT_FREQ == 0  # How often (epoch) to save model during training
             if self.cfg.TRAIN.CHECKPOINT_FREQ > 0 else False
         )
-        # 保存最优模型参数
+        # save the best model params
         if do_test and self.cfg.TEST.FINAL_MODEL == "best_val":
             curr_result = self.test(split="val")
             is_best = curr_result > self.best_result
@@ -602,10 +598,8 @@ class TrainerX(SimpleTrainer):
             if meet_freq or only_few_batches:
                 nb_remain = 0
                 nb_remain += self.num_batches - self.batch_idx - 1
-                nb_remain += (
-                    self.max_epoch - self.epoch - 1
-                ) * self.num_batches
-                eta_seconds = batch_time.avg * nb_remain  # 预估剩余计算的事件
+                nb_remain += (self.max_epoch - self.epoch - 1) * self.num_batches
+                eta_seconds = batch_time.avg * nb_remain  # 预估剩余计算的时间
                 eta = str(datetime.timedelta(seconds=int(eta_seconds)))
 
                 info = []
@@ -617,6 +611,8 @@ class TrainerX(SimpleTrainer):
                 info += [f"lr {self.get_current_lr():.4e}"]
                 info += [f"eta {eta}"]
                 print(" ".join(info))
+
+                # wandb.log({"loss_g": loss_summary["loss_g"].item(), "loss_f": loss_summary["loss_f"].item(), "loss_d": loss_summary["loss_d"].item()})
 
             n_iter = self.epoch * self.num_batches + self.batch_idx
             for name, meter in losses.meters.items():  # 在这里利用tensorboard输出相关信息

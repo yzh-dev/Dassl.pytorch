@@ -16,6 +16,6 @@ OPTIM:
 
 TRAINER:
   DDAIG:
-    G_ARCH: "fcn_3x64_gctx"
+    G_ARCH: "fcn_3x64_gctx_stn"
     WARMUP: 3
     LMDA: 0.3

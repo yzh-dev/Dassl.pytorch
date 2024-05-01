@@ -7,7 +7,6 @@ from dassl.engine import TRAINER_REGISTRY, TrainerX
 from dassl.modeling import build_network
 from dassl.engine.trainer import SimpleNet
 
-
 @TRAINER_REGISTRY.register()
 class DDAIG(TrainerX):
     """Deep Domain-Adversarial Image Generation.

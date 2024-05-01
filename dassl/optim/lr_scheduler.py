@@ -110,9 +110,7 @@ def build_lr_scheduler(optimizer, optim_cfg):
         if stepsize <= 0:
             stepsize = max_epoch
 
-        scheduler = torch.optim.lr_scheduler.StepLR(
-            optimizer, step_size=stepsize, gamma=gamma
-        )
+        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=stepsize, gamma=gamma)
 
     elif lr_scheduler == "multi_step":
         if not isinstance(stepsize, (list, tuple)):
