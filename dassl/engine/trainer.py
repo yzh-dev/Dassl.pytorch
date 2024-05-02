@@ -422,7 +422,7 @@ class SimpleTrainer(TrainerBase):
             (self.epoch + 1) % self.cfg.TRAIN.CHECKPOINT_FREQ == 0  # How often (epoch) to save model during training
             if self.cfg.TRAIN.CHECKPOINT_FREQ > 0 else False
         )
-        # save the best model params
+        #  eval on val, and save the best model params
         if do_test and self.cfg.TEST.FINAL_MODEL == "best_val":
             curr_result = self.test(split="val")
             is_best = curr_result > self.best_result
@@ -612,7 +612,8 @@ class TrainerX(SimpleTrainer):
                 info += [f"eta {eta}"]
                 print(" ".join(info))
 
-                # wandb.log({"loss_g": loss_summary["loss_g"].item(), "loss_f": loss_summary["loss_f"].item(), "loss_d": loss_summary["loss_d"].item()})
+                wandb.log({'loss_g_label': loss_summary["loss_g_label"], 'loss_g_domain': loss_summary["loss_g_domain"],
+                                           'loss_f': loss_summary["loss_f"], 'loss_d': loss_summary["loss_d"]})
 
             n_iter = self.epoch * self.num_batches + self.batch_idx
             for name, meter in losses.meters.items():  # 在这里利用tensorboard输出相关信息

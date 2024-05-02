@@ -92,10 +92,15 @@ def setup_cfg(args):
 
 def main(args):
     cfg = setup_cfg(args)
-    # wandb.init(project="DG",
-    #            name="{}-{}-{}".format(args.trainer,
-    #                                   args.target_domains,
-    #                                   cfg.OPTIM.LR))
+    wandb.init(
+        project="dassl_OfficeHome",
+        name="{}-{}-{}-".format(
+            args.trainer,
+            args.target_domains,
+            cfg.OPTIM.LR
+        ),
+        config=vars(args)  # namespace to dict
+    )
 
     if cfg.SEED >= 0:
         print("Setting fixed seed: {}".format(cfg.SEED))
