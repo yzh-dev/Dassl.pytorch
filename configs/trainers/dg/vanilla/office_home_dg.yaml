@@ -9,3 +9,6 @@ OPTIM:
   LR: 0.001
   MAX_EPOCH: 50
   LR_SCHEDULER: "cosine"
+
+TEST:
+  FINAL_MODEL: "best_val"

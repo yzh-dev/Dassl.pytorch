@@ -57,37 +57,38 @@ class DDAIG(TrainerX):
 
     def saveImg(self, origin_imgs, generated_imgs):
         # 由于代码中的中间结果是带有梯度的要进行detach()操作
-        mean = [0.485, 0.456, 0.406]  # dataLoader中设置的mean参数
-        std = [0.229, 0.224, 0.225]  # dataLoader中设置的std参数
+        # mean = [0.485, 0.456, 0.406]  # dataLoader中设置的mean参数
+        # std = [0.229, 0.224, 0.225]  # dataLoader中设置的std参数
         origin_imgs_out = origin_imgs.clone()
         generated_imgs_out = generated_imgs.clone()
 
-        for i in range(len(mean)):  # 反标准化
-            origin_imgs_out[:, i, :, :] = origin_imgs[:, i, :, :] * std[i] + mean[i]
-            generated_imgs_out[:, i, :, :] = generated_imgs[:, i, :, :] * std[i] + mean[i]
+        # for i in range(len(mean)):  # 反标准化
+        #     origin_imgs_out[:, i, :, :] = origin_imgs[:, i, :, :] * std[i] + mean[i]
+        #     generated_imgs_out[:, i, :, :] = generated_imgs[:, i, :, :] * std[i] + mean[i]
 
         origin_imgs_out = origin_imgs_out.permute(0, 2, 3, 1)  # BHWC
         generated_imgs_out = generated_imgs_out.permute(0, 2, 3, 1)  # BHWC
         origin_imgs_out = origin_imgs_out.cpu().detach().numpy()  # to numpy array
         generated_imgs_out = generated_imgs_out.cpu().detach().numpy()  # to numpy array
-        for i in range(origin_imgs_out.shape[0]):
-            origin_out = origin_imgs_out[i] * 255  # 得到batch中其中一步的图片,从[0,1]转为[0,255]
-            origin_image = Image.fromarray(np.uint8(origin_out)).convert('RGB')
-            # image.show()
-            # 通过时间命名存储结果
-            timestamp = datetime.now().strftime("%H-%M-%S") + "-{}".format(i)
-            savepath = timestamp + '_origin.jpg'
-            root = "D:/GeneratedImg/"
-            origin_image.save(root + savepath)
 
-            generated_out = generated_imgs_out[i] * 255  # 得到batch中其中一步的图片,从[0,1]转为[0,255]
-            generated_image = Image.fromarray(np.uint8(generated_out)).convert('RGB')
-            # image.show()
-            # 通过时间命名存储结果
-            timestamp = datetime.now().strftime("%H-%M-%S") + "-{}".format(i)
-            savepath = timestamp + '_generated.jpg'
-            root = "D:/GeneratedImg/"
-            generated_image.save(root + savepath)
+        # for i in range(origin_imgs_out.shape[0]):
+        i=0 # only save one image to check
+        origin_out = origin_imgs_out[i] * 255  # 得到batch中其中一步的图片,从[0,1]转为[0,255]
+        origin_image = Image.fromarray(np.uint8(origin_out)).convert('RGB')
+        # image.show()
+        # 通过时间命名存储结果
+        timestamp = datetime.now().strftime("%H-%M-%S.%f")[:-3]
+        savepath = timestamp + '_origin.jpg'
+        root = "D:/GeneratedImg/"
+        origin_image.save(root + savepath)
+
+        generated_out = generated_imgs_out[i] * 255  # 得到batch中其中一步的图片,从[0,1]转为[0,255]
+        generated_image = Image.fromarray(np.uint8(generated_out)).convert('RGB')
+        # image.show()
+        # 通过时间命名存储结果
+        timestamp = datetime.now().strftime("%H-%M-%S.%f")[:-3]
+        savepath = timestamp + '_generated.jpg'
+        generated_image.save(root + savepath)
 
 
     def forward_backward(self, batch):

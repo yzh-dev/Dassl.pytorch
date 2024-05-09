@@ -14,3 +14,6 @@ OPTIM:
 TRAINER:
   DAELDG:
     STRONG_TRANSFORMS: ["random_flip", "cutout", "randaugment2", "normalize"]
+
+TEST:
+  FINAL_MODEL: "best_val"

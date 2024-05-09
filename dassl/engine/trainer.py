@@ -301,6 +301,7 @@ class TrainerBase:
 
 class SimpleTrainer(TrainerBase):
     """A simple trainer class implementing generic functions."""
+
     # 构造函数
     def __init__(self, cfg):
         super().__init__()
@@ -434,6 +435,7 @@ class SimpleTrainer(TrainerBase):
                     val_result=curr_result,
                     model_name="model-best.pth.tar"
                 )
+            wandb.log({"val_curracc": curr_result, "val_bestacc": self.best_result})
         # 按照固定频率保存或者保存最终模型参数
         if meet_checkpoint_freq or last_epoch:
             self.save_model(self.epoch, self.output_dir)
@@ -542,8 +544,8 @@ class TrainerXU(SimpleTrainer):
                 nb_remain = 0
                 nb_remain += self.num_batches - self.batch_idx - 1
                 nb_remain += (
-                    self.max_epoch - self.epoch - 1
-                ) * self.num_batches
+                                     self.max_epoch - self.epoch - 1
+                             ) * self.num_batches
                 eta_seconds = batch_time.avg * nb_remain
                 eta = str(datetime.timedelta(seconds=int(eta_seconds)))
 
@@ -556,6 +558,11 @@ class TrainerXU(SimpleTrainer):
                 info += [f"lr {self.get_current_lr():.4e}"]
                 info += [f"eta {eta}"]
                 print(" ".join(info))
+
+                loss_info = {}
+                for key, value in loss_summary.items():
+                    loss_info[key] = value
+                wandb.log(loss_info)
 
             n_iter = self.epoch * self.num_batches + self.batch_idx
             for name, meter in losses.meters.items():
@@ -612,8 +619,12 @@ class TrainerX(SimpleTrainer):
                 info += [f"eta {eta}"]
                 print(" ".join(info))
 
-                wandb.log({'loss_g_label': loss_summary["loss_g_label"], 'loss_g_domain': loss_summary["loss_g_domain"],
-                                           'loss_f': loss_summary["loss_f"], 'loss_d': loss_summary["loss_d"]})
+                loss_info = {}
+                for key, value in loss_summary.items():
+                    loss_info[key] = value
+                wandb.log(loss_info)
+                # wandb.log({'loss_g_label': loss_summary["loss_g_label"], 'loss_g_domain': loss_summary["loss_g_domain"],
+                #            'loss_f': loss_summary["loss_f"], 'loss_d': loss_summary["loss_d"]})
 
             n_iter = self.epoch * self.num_batches + self.batch_idx
             for name, meter in losses.meters.items():  # 在这里利用tensorboard输出相关信息

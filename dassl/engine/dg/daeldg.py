@@ -112,13 +112,15 @@ class DAELDG(TrainerX):
 
             # Consistency regularization，一致性正则化，目的是使第i个域和其他所有域的平均预测结果保持一致
             cr_pred = []
-            for j in cr_s:
+            # for j in cr_s:
+            for j in domain:  # 强增强样本
                 pred_j = self.E(j, feat2_i)  # 第j个域的专家网络expert的预测
                 pred_j = pred_j.unsqueeze(1)
                 cr_pred.append(pred_j)
             cr_pred = torch.cat(cr_pred, 1)
             cr_pred = cr_pred.mean(1)  # 其他域的平均预测结果
-            loss_cr += ((cr_pred - expert_label_i)**2).sum(1).mean()  # 一致性L2 loss
+            # loss_cr += ((cr_pred - expert_label_i)**2).sum(1).mean()  # 一致性L2 loss
+            loss_cr += ((cr_pred - label_i)**2).sum(1).mean()  # 一致性L2 loss，直接使用真实标签
 
         loss_x /= self.n_domain
         loss_cr /= self.n_domain

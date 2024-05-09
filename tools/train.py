@@ -128,7 +128,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--root", type=str, default="D:\ML\Dataset", help="path to dataset")
     parser.add_argument("--output-dir", type=str, default="../output/", help="output directory")
-    parser.add_argument("--resume", type=str, default="",
+    parser.add_argument("--resume", type=str, default="0",
                         help="checkpoint directory (from which the training resumes)", )
     parser.add_argument("--seed", type=int, default=42, help="only positive value enables a fixed seed")
 
@@ -234,8 +234,8 @@ if __name__ == "__main__":
     # help="path to config file for dataset setup", )
 
     # DG for ddaig算法
-    parser.add_argument("--trainer", type=str, default="DDAIG", help="name of trainer")
-    parser.add_argument("--config-file", type=str, default="../configs/trainers/dg/ddaig/office_home_dg.yaml")
+    parser.add_argument("--trainer", type=str, default="DAELDG", help="name of trainer")
+    parser.add_argument("--config-file", type=str, default="../configs/trainers/dg/daeldg/office_home_dg.yaml")
     parser.add_argument("--dataset-config-file", type=str, default="../configs/datasets/dg/office_home_dg.yaml")
     parser.add_argument("--source-domains", type=str, nargs="+", default=["art", "clipart", "real_world"])
     parser.add_argument("--target-domains", type=str, nargs="+", default=["product"])
