@@ -42,18 +42,24 @@ class Registry:
 
         self._obj_map[name] = obj
 
-    def register(self, obj=None, force=False):
+    def register(self, obj=None, force=False, nick_name=None):
         if obj is None:
             # Used as a decorator
             def wrapper(fn_or_class):
-                name = fn_or_class.__name__
+                if nick_name is not None:
+                    name = nick_name
+                else:
+                    name = fn_or_class.__name__
                 self._do_register(name, fn_or_class, force=force)
                 return fn_or_class
 
             return wrapper
 
         # Used as a function call
-        name = obj.__name__
+        if nick_name is not None:
+            name = nick_name
+        else:
+            name = obj.__name__
         self._do_register(name, obj, force=force)
 
     def get(self, name):

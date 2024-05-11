@@ -280,8 +280,8 @@ def load_pretrained_weights(model, weight_path):
         >>> load_pretrained_weights(model, weight_path)
     """
     checkpoint = load_checkpoint(weight_path)
-    if "state_dict" in checkpoint:
-        state_dict = checkpoint["state_dict"]
+    if 'state_dict' in checkpoint:
+        state_dict = checkpoint['state_dict']
     else:
         state_dict = checkpoint
 
@@ -290,8 +290,12 @@ def load_pretrained_weights(model, weight_path):
     matched_layers, discarded_layers = [], []
 
     for k, v in state_dict.items():
-        if k.startswith("module."):
-            k = k[7:]  # discard module.
+        if k.startswith('module.G.'):
+            k = 'backbone.' + k[9:]
+        elif k.startswith('module.features.'):
+            k = 'backbone.' + k[16:]
+        elif k.startswith('module.'):
+            k = 'backbone.' + k[7:]  # discard module.
 
         if k in model_dict and model_dict[k].size() == v.size():
             new_state_dict[k] = v
@@ -304,13 +308,20 @@ def load_pretrained_weights(model, weight_path):
 
     if len(matched_layers) == 0:
         warnings.warn(
-            f"Cannot load {weight_path} (check the key names manually)"
+            'The pretrained weights "{}" cannot be loaded, '
+            'please check the key names manually '
+            '(** ignored and continue **)'.format(weight_path)
         )
     else:
-        print(f"Successfully loaded pretrained weights from {weight_path}")
+        print(
+            'Successfully loaded pretrained weights from "{}"'.
+            format(weight_path)
+        )
         if len(discarded_layers) > 0:
             print(
-                f"Layers discarded due to unmatched keys or size: {discarded_layers}"
+                '** The following layers are discarded '
+                'due to unmatched keys or layer size: {}'.
+                format(discarded_layers)
             )
 
 

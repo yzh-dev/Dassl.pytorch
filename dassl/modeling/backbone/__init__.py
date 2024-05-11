@@ -21,3 +21,14 @@ from .resnet_dynamic import *
 from .cnn_digitsingle import cnn_digitsingle
 from .preact_resnet18 import preact_resnet18
 from .cnn_digit5_m3sda import cnn_digit5_m3sda
+from .resnet_draac_v3 import (
+    resnet50_draac_v3,
+)
+
+from .resnet_draac_v4 import (
+    resnet50_draac_v4,
+)
+
+from .od_resnet_v5 import (
+    odresnet50_4x_v5,
+)

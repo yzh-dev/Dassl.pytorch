@@ -5,6 +5,8 @@ from dassl.utils import setup_logger, set_random_seed, collect_env_info
 from dassl.config import clean_cfg, get_cfg_default
 from dassl.engine import build_trainer
 import wandb
+from share import share_dict
+
 
 def print_args(args, cfg):
     print("***************")
@@ -101,6 +103,8 @@ def main(args):
         ),
         config=vars(args)  # namespace to dict
     )
+    share_dict['args'] = args
+    share_dict['cfg'] = cfg
 
     if cfg.SEED >= 0:
         print("Setting fixed seed: {}".format(cfg.SEED))
@@ -111,7 +115,7 @@ def main(args):
         torch.backends.cudnn.benchmark = True
 
     print_args(args, cfg)
-    print("Collecting env info ...")
+    # print("Collecting env info ...")
     # print("** System info **\n{}\n".format(collect_env_info()))
     trainer = build_trainer(cfg)
 
@@ -131,6 +135,14 @@ if __name__ == "__main__":
     parser.add_argument("--resume", type=str, default="0",
                         help="checkpoint directory (from which the training resumes)", )
     parser.add_argument("--seed", type=int, default=42, help="only positive value enables a fixed seed")
+    parser.add_argument(
+        '--dymodel',
+        type=str, choices=['DRT', 'DDG', 'ODCONV'],
+    )
+    parser.add_argument(
+        '--pe_type',
+        type=str, choices=['CI', 'CK'], help="Cross-Instance, Cross-Kernel"
+    )
 
     # ------------------------------DA-------------------------
     # DA  for SourceOnly
@@ -234,18 +246,18 @@ if __name__ == "__main__":
     # help="path to config file for dataset setup", )
 
     # DG for ddaig算法
-    parser.add_argument("--trainer", type=str, default="DAELDG", help="name of trainer")
-    parser.add_argument("--config-file", type=str, default="../configs/trainers/dg/daeldg/office_home_dg.yaml")
-    parser.add_argument("--dataset-config-file", type=str, default="../configs/datasets/dg/office_home_dg.yaml")
-    parser.add_argument("--source-domains", type=str, nargs="+", default=["art", "clipart", "real_world"])
-    parser.add_argument("--target-domains", type=str, nargs="+", default=["product"])
-
-    # DG for DomainMix算法
-    # parser.add_argument("--trainer", type=str, default="DomainMix", help="name of trainer")
-    # parser.add_argument("--config-file", type=str, default="../configs/trainers/dg/vanilla/office_home_dg.yaml")
+    # parser.add_argument("--trainer", type=str, default="DAELDG", help="name of trainer")
+    # parser.add_argument("--config-file", type=str, default="../configs/trainers/dg/daeldg/office_home_dg.yaml")
     # parser.add_argument("--dataset-config-file", type=str, default="../configs/datasets/dg/office_home_dg.yaml")
     # parser.add_argument("--source-domains", type=str, nargs="+", default=["art", "clipart", "real_world"])
     # parser.add_argument("--target-domains", type=str, nargs="+", default=["product"])
+
+    # DG for DomainMix算法
+    parser.add_argument("--trainer", type=str, default="DomainMix", help="name of trainer")
+    parser.add_argument("--config-file", type=str, default="../configs/trainers/dg/ddg/OfficeHome.yaml")
+    parser.add_argument("--dataset-config-file", type=str, default="../configs/datasets/dg/ddg_OfficeHome_resnet18.yaml")
+    parser.add_argument("--source-domains", type=str, nargs="+", default=["art", "clipart", "real_world"])
+    parser.add_argument("--target-domains", type=str, nargs="+", default=["product"])
 
 
     # DG for CrossGrad算法
