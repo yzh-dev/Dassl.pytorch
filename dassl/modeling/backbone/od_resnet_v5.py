@@ -147,13 +147,17 @@ class ODConv2d(nn.Module):
     def update_temperature(self, temperature):
         self.attention.update_temperature(temperature)
 
-    def _forward_impl_common(self, x):
+    def _forward_impl_common(self, x):  # B,C,H,W
         # Multiplying channel attention (or filter attention) to weights and feature maps are equivalent,
         # while we observe that when using the latter method the models will run faster with less gpu memory cost.
+        # channel_attention: B,C,1,1，对应论文中的alpha_ci, attention scores to c_in channels of each convolutional filter
+        # filter_attention: B,C,1,1，对应论文中的alpha_fi, attention scores to c_out convolutional filters
+        # spatial_attention: 1.0  ，对应论文中的alpha_si,
+        # kernel_attention: B,4,1,1,1，对应论文中的alpha_wi, 即attention score for the convolutional kernel
         channel_attention, filter_attention, spatial_attention, kernel_attention = self.attention(x)
         batch_size, in_planes, height, width = x.size()
         x = x * channel_attention
-        x = x.reshape(1, -1, height, width)
+        x = x.reshape(1, -1, height, width)  # 1,B*C,H,W
         aggregate_weight = spatial_attention * kernel_attention * self.weight.unsqueeze(dim=0)
         aggregate_weight = torch.sum(aggregate_weight, dim=1).view(
             [-1, self.in_planes // self.groups, self.kernel_size, self.kernel_size])

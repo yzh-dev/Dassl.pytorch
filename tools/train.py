@@ -135,14 +135,7 @@ if __name__ == "__main__":
     parser.add_argument("--resume", type=str, default="0",
                         help="checkpoint directory (from which the training resumes)", )
     parser.add_argument("--seed", type=int, default=42, help="only positive value enables a fixed seed")
-    parser.add_argument(
-        '--dymodel',
-        type=str, choices=['DRT', 'DDG', 'ODCONV'],
-    )
-    parser.add_argument(
-        '--pe_type',
-        type=str, choices=['CI', 'CK'], help="Cross-Instance, Cross-Kernel"
-    )
+    parser.add_argument('--pe_type', type=str, choices=['CI', 'CK'], help="Cross-Instance, Cross-Kernel")
 
     # ------------------------------DA-------------------------
     # DA  for SourceOnly
