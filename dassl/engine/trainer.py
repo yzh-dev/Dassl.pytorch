@@ -423,6 +423,7 @@ class SimpleTrainer(TrainerBase):
             (self.epoch + 1) % self.cfg.TRAIN.CHECKPOINT_FREQ == 0  # How often (epoch) to save model during training
             if self.cfg.TRAIN.CHECKPOINT_FREQ > 0 else False
         )
+
         #  eval on val, and save the best model params
         if do_test and self.cfg.TEST.FINAL_MODEL == "best_val":
             curr_result = self.test(split="val")
